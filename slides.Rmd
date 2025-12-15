@@ -1,0 +1,386 @@
+---
+title: "Signals and Systems: Chapter 1"
+author: "Jules"
+output: revealjs::revealjs_presentation
+---
+
+```{r setup, include=FALSE}
+# Load all required libraries once for the entire document.
+library(ggplot2)
+library(patchwork)
+```
+
+## Section 1: Introduction
+
+### What is a Signal?
+
+- A **signal** is a function of one or more independent variables that conveys information.
+- Examples:
+    - Voltage in a circuit: $v(t)$
+    - Speech (acoustic pressure vs. time)
+    - An image (brightness vs. spatial coordinates)
+
+### Continuous vs. Discrete Time
+
+- **Continuous-Time Signal:**
+  - The independent variable ($t$) is continuous.
+  - Defined for a continuum of values.
+  - We use parentheses: $x(t)$
+- **Discrete-Time Signal:**
+  - The independent variable ($n$) is an integer.
+  - Defined only at discrete points in time.
+  - We use brackets: $x[n]$
+
+### Continuous vs. Discrete Visualization
+
+```{r, echo=FALSE, fig.width=10, fig.height=4, warning=FALSE, message=FALSE}
+# 1. Continuous Sine Wave
+t <- seq(0, 2*pi, length.out = 500)
+continuous_data <- data.frame(Time = t, Amplitude = sin(t))
+
+p1 <- ggplot(continuous_data, aes(x = Time, y = Amplitude)) +
+  geom_line(color = "dodgerblue", size=1) +
+  ggtitle("Continuous-Time Signal: x(t) = sin(t)") +
+  xlab("Time (t)") +
+  ylab("Amplitude") +
+  theme_minimal(base_size = 14) +
+  ylim(-1.1, 1.1)
+
+# 2. Discrete Sine Wave (Sampled)
+n <- 0:20
+sample_period <- 2*pi / 20
+discrete_data <- data.frame(Sample = n, Amplitude = sin(sample_period * n))
+
+p2 <- ggplot(discrete_data, aes(x = Sample, y = Amplitude)) +
+  geom_point(color = "firebrick", size = 3) +
+  geom_segment(aes(x = Sample, xend = Sample, y = 0, yend = Amplitude), color = "firebrick") +
+  ggtitle("Discrete-Time Signal: x[n] = sin(2*pi*n/20)") +
+  xlab("Sample (n)") +
+  ylab("Amplitude") +
+  theme_minimal(base_size = 14) +
+  ylim(-1.1, 1.1)
+
+# Arrange plots side-by-side
+p1 + p2
+```
+
+## Section 2: Energy and Power
+
+### Instantaneous Power
+
+- For a physical system, instantaneous power is the rate at which energy is delivered or absorbed.
+- Example: In a resistor with resistance $R$, the power is:
+  - $p(t) = v(t)i(t) = \frac{1}{R}v^2(t)$
+- For generality, we often normalize power by assuming $R=1$ and refer to the instantaneous power of a signal $x(t)$ as $|x(t)|^2$.
+
+### Total Energy
+
+- **Total Energy** is the integral of the instantaneous power over a specified interval.
+- **Continuous-Time (finite interval):**
+  - $$E_{[t_1, t_2]} = \int_{t_1}^{t_2} |x(t)|^2 dt$$
+- **Discrete-Time (finite interval):**
+  - $$E_{[n_1, n_2]} = \sum_{n=n_1}^{n_2} |x[n]|^2$$
+- **Total Energy over an infinite interval ($E_{\infty}$):**
+  - $$E_{\infty} = \lim_{T \to \infty} \int_{-T}^{T} |x(t)|^2 dt$$
+
+### Average Power
+
+- **Average Power** is the total energy divided by the length of the time interval.
+- **Continuous-Time (infinite interval):**
+  - $$P_{\infty} = \lim_{T \to \infty} \frac{1}{2T} \int_{-T}^{T} |x(t)|^2 dt$$
+- **Discrete-Time (infinite interval):**
+  - $$P_{\infty} = \lim_{N \to \infty} \frac{1}{2N+1} \sum_{n=-N}^{N} |x[n]|^2$$
+
+### Three Classes of Signals
+
+1.  **Finite Energy Signals:**
+    - These signals have finite total energy ($E_{\infty} < \infty$).
+    - This implies their average power is zero ($P_{\infty} = 0$).
+    - Example: A single, isolated pulse.
+
+2.  **Finite Power Signals:**
+    - These signals have infinite total energy ($E_{\infty} = \infty$) but finite average power ($0 < P_{\infty} < \infty$).
+    - Example: Periodic signals like sine waves.
+
+3.  **Neither Finite Energy nor Finite Power:**
+    - Both $E_{\infty}$ and $P_{\infty}$ are infinite.
+    - Example: The signal $x(t) = t$.
+
+## Section 3: Transformations of the Independent Variable
+
+### Time Shift
+
+- A shift in the independent variable, $t$ or $n$, is a common transformation.
+- **Continuous-Time:** $y(t) = x(t - t_0)$
+  - If $t_0 > 0$, the signal is **delayed** (shifted right).
+  - If $t_0 < 0$, the signal is **advanced** (shifted left).
+- **Discrete-Time:** $y[n] = x[n - n_0]$
+  - Delay ($n_0 > 0$) or advance ($n_0 < 0$).
+
+### Time Reversal & Scaling
+
+- **Time Reversal:**
+  - $y(t) = x(-t)$ or $y[n] = x[-n]$
+  - This operation **reflects** the signal about the vertical axis ($t=0$ or $n=0$).
+- **Time Scaling:**
+  - $y(t) = x(at)$
+  - If $|a| > 1$, the signal is **compressed** (speeds up).
+  - If $0 < |a| < 1$, the signal is **expanded** or **stretched** (slows down).
+  - Note: This is primarily a continuous-time concept.
+
+### Visualizing Transformations
+
+```{r, echo=FALSE, fig.width=10, fig.height=6, warning=FALSE, message=FALSE}
+# Define the triangular pulse function
+tri_pulse <- function(t) {
+  sapply(t, function(t_val) {
+    if (abs(t_val) <= 1) {
+      1 - abs(t_val)
+    } else {
+      0
+    }
+  })
+}
+
+t <- seq(-4, 4, length.out = 1000)
+
+# 1. Original Signal
+df_orig <- data.frame(Time = t, Amplitude = tri_pulse(t))
+p1 <- ggplot(df_orig, aes(Time, Amplitude)) + geom_line(color="dodgerblue", size=1) +
+  ggtitle("Original Signal: x(t)") + ylim(-0.1, 1.1) + theme_minimal()
+
+# 2. Time Shift (Delay)
+df_shift <- data.frame(Time = t, Amplitude = tri_pulse(t - 2))
+p2 <- ggplot(df_shift, aes(Time, Amplitude)) + geom_line(color="darkorange", size=1) +
+  ggtitle("Time Shift: x(t - 2)") + ylim(-0.1, 1.1) + theme_minimal()
+
+# 3. Time Reversal
+df_rev <- data.frame(Time = t, Amplitude = tri_pulse(-t))
+p3 <- ggplot(df_rev, aes(Time, Amplitude)) + geom_line(color="forestgreen", size=1) +
+  ggtitle("Time Reversal: x(-t)") + ylim(-0.1, 1.1) + theme_minimal()
+
+# 4. Time Scaling (Compression)
+df_scale <- data.frame(Time = t, Amplitude = tri_pulse(2 * t))
+p4 <- ggplot(df_scale, aes(Time, Amplitude)) + geom_line(color="firebrick", size=1) +
+  ggtitle("Time Scaling: x(2t)") + ylim(-0.1, 1.1) + theme_minimal()
+
+# Arrange in a 2x2 grid
+(p1 | p2) / (p3 | p4)
+```
+
+## Section 4: Periodic Signals
+
+### Continuous-Time Periodic Signals
+
+- A continuous-time signal $x(t)$ is **periodic** if there is a positive value $T$ for which:
+  - $$x(t) = x(t + T)$$ for all $t$.
+- The **fundamental period** ($T_0$) is the smallest positive value of $T$ for which the condition holds.
+- Signals that are not periodic are called **aperiodic**.
+
+### Discrete-Time Periodic Signals
+
+- A discrete-time signal $x[n]$ is **periodic** if there is a positive integer $N$ for which:
+  - $$x[n] = x[n + N]$$ for all $n$.
+- The **fundamental period** ($N_0$) is the smallest positive integer $N$ for which the condition holds.
+
+### Examples of Periodic & Aperiodic Signals
+
+```{r, echo=FALSE, fig.width=10, fig.height=4, warning=FALSE, message=FALSE}
+# 1. Periodic Signal: cos(t)
+t <- seq(0, 4 * pi, length.out = 1000)
+df_periodic <- data.frame(Time = t, Amplitude = cos(t))
+
+p1 <- ggplot(df_periodic, aes(Time, Amplitude)) +
+  geom_line(color = "dodgerblue", size=1) +
+  ggtitle("Periodic Signal: x(t) = cos(t)") +
+  xlab("Time (t)") +
+  ylab("Amplitude") +
+  theme_minimal() +
+  geom_vline(xintercept = c(0, 2*pi, 4*pi), linetype="dashed", color="gray50")
+
+# 2. Aperiodic Signal: cos(t) + cos(pi*t)
+# T1 = 2pi, T2 = 2. Ratio T1/T2 = pi (irrational).
+df_aperiodic <- data.frame(Time = t, Amplitude = cos(t) + cos(pi * t))
+
+p2 <- ggplot(df_aperiodic, aes(Time, Amplitude)) +
+  geom_line(color = "firebrick", size=1) +
+  ggtitle("Aperiodic Signal: x(t) = cos(t) + cos(pi*t)") +
+  xlab("Time (t)") +
+  ylab("Amplitude") +
+  theme_minimal()
+
+p1 + p2
+```
+
+## Section 5: Even and Odd Signals
+
+### Definitions
+
+- A signal is **Even** if it is symmetric about the vertical axis.
+  - $x(-t) = x(t)$ or $x[-n] = x[n]$
+- A signal is **Odd** if it is anti-symmetric about the origin.
+  - $x(-t) = -x(t)$ or $x[-n] = -x[n]$
+  - Note: An odd signal must be zero at $t=0$ or $n=0$.
+
+### Even-Odd Decomposition
+
+- Any signal can be decomposed into a sum of an even part and an odd part.
+- $x(t) = \mathcal{E}v\{x(t)\} + \mathcal{O}d\{x(t)\}$
+- **Even Part:**
+  - $$\mathcal{E}v\{x(t)\} = \frac{1}{2}[x(t) + x(-t)]$$
+- **Odd Part:**
+  - $$\mathcal{O}d\{x(t)\} = \frac{1}{2}[x(t) - x(-t)]$$
+
+### Decomposition Example
+
+```{r, echo=FALSE, fig.width=10, fig.height=7, warning=FALSE, message=FALSE}
+# Generate an arbitrary signal (e.g., a decaying ramp)
+t <- seq(-3, 3, length.out = 500)
+x_t <- (1 - t/3) * exp(-t) * (t >= -2 & t <= 3)
+
+df <- data.frame(Time = t, Amplitude = x_t)
+
+# Calculate x(-t)
+x_neg_t <- (1 - (-t)/3) * exp(-(-t)) * ((-t) >= -2 & (-t) <= 3)
+
+# Calculate Even and Odd parts
+even_part <- 0.5 * (x_t + x_neg_t)
+odd_part <- 0.5 * (x_t - x_neg_t)
+
+df$Even <- even_part
+df$Odd <- odd_part
+
+# Plots
+p_orig <- ggplot(df, aes(Time, Amplitude)) + geom_line(size=1) + ggtitle("Original Signal: x(t)")
+p_even <- ggplot(df, aes(Time, Even)) + geom_line(color="dodgerblue", size=1) + ggtitle("Even Part: Ev{x(t)}")
+p_odd <- ggplot(df, aes(Time, Odd)) + geom_line(color="firebrick", size=1) + ggtitle("Odd Part: Od{x(t)}")
+
+# Arrange plots
+p_orig / (p_even | p_odd)
+```
+
+## Section 6: Exponential & Sinusoidal Signals
+
+### Real Exponentials (Continuous-Time)
+
+- The signal $x(t) = Ce^{at}$ is a real exponential.
+- If $a > 0$, the signal is **growing**.
+- If $a < 0$, the signal is **decaying**.
+- These signals are fundamental in modeling physical processes like RC circuit responses or population growth.
+
+### Complex Exponentials & Euler's Relation
+
+- The signal $x(t) = e^{j\omega_0 t}$ is a periodic complex exponential.
+- **Euler's Relation** connects it to sinusoids:
+  - $$e^{j\omega_0 t} = \cos(\omega_0 t) + j\sin(\omega_0 t)$$
+- This signal has a constant magnitude of 1, but a phase that rotates with frequency $\omega_0$.
+- It has a fundamental period of $T_0 = \frac{2\pi}{|\omega_0|}$.
+
+### Discrete-Time Sinusoids: Key Differences
+
+- The discrete-time exponential $x[n] = e^{j\omega_0 n}$ has unique properties compared to its continuous counterpart.
+
+1.  **Identity:** Frequencies separated by $2\pi$ are identical.
+    - $e^{j(\omega_0 + 2\pi)n} = e^{j\omega_0 n}e^{j2\pi n} = e^{j\omega_0 n}$ since $e^{j2\pi n}=1$.
+
+2.  **Oscillation Rate:** The rate of oscillation does not continuously increase with $\omega_0$.
+    - **Low frequency** is near $\omega_0 = 0, 2\pi, 4\pi, \dots$
+    - **High frequency** is near $\omega_0 = \pi, 3\pi, \dots$ (alternates sign every sample).
+
+3.  **Periodicity:** It's periodic **only if** $\frac{\omega_0}{2\pi}$ is a rational number.
+
+### Visualizing Discrete Oscillation Rates
+
+```{r, echo=FALSE, fig.width=10, fig.height=8, warning=FALSE, message=FALSE}
+n <- 0:32
+w0_vals <- c(0, pi/8, pi)
+titles <- c("w0 = 0 (Lowest Freq)", "w0 = pi/8", "w0 = pi (Highest Freq)")
+plot_list <- list()
+
+for (i in 1:length(w0_vals)) {
+  w0 <- w0_vals[i]
+  df <- data.frame(Sample = n, Amplitude = cos(w0 * n))
+
+  plot_list[[i]] <- ggplot(df, aes(x = Sample, y = Amplitude)) +
+    geom_point(size = 2.5, color="dodgerblue") +
+    geom_segment(aes(xend = Sample, yend = 0), color="dodgerblue") +
+    ggtitle(paste("Real part of exp(j*w0*n) for", titles[i])) +
+    theme_minimal(base_size = 14) +
+    ylim(-1.1, 1.1)
+}
+
+wrap_plots(plot_list, ncol = 1)
+```
+
+## Section 7: Impulse and Step Functions
+
+### Discrete-Time Impulse and Step
+
+- The **unit impulse** ($\delta[n]$) is a fundamental signal in discrete-time analysis.
+  - $$\delta[n] = \begin{cases} 1, & n=0 \\ 0, & n \neq 0 \end{cases}$$
+- The **unit step** ($u[n]$) is another basic signal.
+  - $$u[n] = \begin{cases} 1, & n \ge 0 \\ 0, & n < 0 \end{cases}$$
+
+### Relationship (Discrete)
+
+- The impulse is the **first difference** of the step function:
+  - $$\delta[n] = u[n] - u[n-1]$$
+- The step function is the **running sum** of the impulse:
+  - $$u[n] = \sum_{m=-\infty}^{n} \delta[m]$$
+
+### Continuous-Time Impulse and Step
+
+- The **unit step** $u(t)$ is defined as:
+  - $$u(t) = \begin{cases} 1, & t > 0 \\ 0, & t < 0 \end{cases}$$
+- The **unit impulse** $\delta(t)$ is defined as the derivative of the step:
+  - $$\delta(t) = \frac{du(t)}{dt}$$
+- It is visualized as an arrow at $t=0$ with an area of 1.
+
+### Sampling Property
+
+- The impulse function is crucial for its **sampling property**.
+- It "samples" the value of another signal at a specific point.
+- **Continuous-Time:**
+  - $$x(t)\delta(t - t_0) = x(t_0)\delta(t - t_0)$$
+- **Discrete-Time:**
+  - $$x[n]\delta[n - n_0] = x[n_0]\delta[n - n_0]$$
+
+## Section 8: Systems & Properties
+
+### What is a System?
+
+- A **system** is a process that transforms an input signal into an output signal.
+  - $$x(t) \longrightarrow \text{SYSTEM} \longrightarrow y(t)$$
+- Systems can be interconnected in various ways:
+  - **Series (Cascade):** The output of one system is the input to another.
+  - **Parallel:** The same input signal is fed into multiple systems, and their outputs are combined.
+  - **Feedback:** The output of a system is fed back as part of its input.
+
+### System Properties (1/3)
+
+- **Memoryless:** The output $y(t_0)$ depends only on the input $x(t_0)$ at the exact same time.
+  - *Example:* A resistor, $y(t) = R \cdot x(t)$.
+- **Invertibility:** Distinct inputs produce distinct outputs. An inverse system exists that can recover the original input.
+  - *Non-invertible example:* $y(t) = x^2(t)$ (the sign of the input is lost).
+
+### System Properties (2/3)
+
+- **Causality:** The output at any time depends only on the **present and past** values of the input. (A system cannot anticipate the future).
+  - All real-time physical systems are causal.
+- **Stability (BIBO):** A system is Bounded-Input, Bounded-Output stable if every bounded input results in a bounded output.
+  - If $|x(t)| \le B_x$, then $|y(t)| \le B_y$.
+
+### System Properties (3/3)
+
+- **Time Invariance:** A time shift in the input signal causes an identical time shift in the output signal.
+  - If $x(t) \to y(t)$, then $x(t-t_0) \to y(t-t_0)$.
+- **Linearity:** The system obeys the superposition principle (additivity and homogeneity).
+  - If $x_1(t) \to y_1(t)$ and $x_2(t) \to y_2(t)$, then
+  - $$a x_1(t) + b x_2(t) \longrightarrow a y_1(t) + b y_2(t)$$
+
+### Conclusion
+
+- This chapter introduced the fundamental concepts of signals and systems.
+- We defined various signal types, transformations, and elementary functions.
+- We established a vocabulary for classifying systems based on their core properties.
+- These concepts form the foundation for analyzing more complex systems in the chapters to come.
