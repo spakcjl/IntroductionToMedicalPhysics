@@ -3,7 +3,7 @@
 **Goal:** Create a 50-slide presentation (approx 90 min) based on the provided Chapter 1 text.
 **Format:** R Markdown (.Rmd) using `revealjs` or `ioslides`.
 **Code:** Use R blocks for plotting. Use `ggplot2` where possible.
-**Source Material: All content is derived from the file chapter1SandS.pdf located in the root of this repository. Please read this PDF to extract the definitions and equations.
+**Source Material:** All content is derived strictly from the file **lecture_content_detailed.md** located in the root of this repository.
 
 ## Slide Breakdown & Content Source
 
