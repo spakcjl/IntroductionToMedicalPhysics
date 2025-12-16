@@ -7,7 +7,7 @@ Input: Read the file 'chapter1.md' in this repository for definitions and equati
 Note: The source file is a raw text extraction from a PDF. It contains OCR artifacts (e.g., 'Tin' instead of 'pi n', broken integrals like '}~'). You must infer the correct mathematical equations from context and standard Signal Processing conventions.
 
 Constraints:
-1.  **Length:** EXACTLY 50 slides. Do not stop early.
+1.  **Length:** MINIMUM 50 slides. Do not stop early.
 2.  **Visual Density:** You must generate **30 to 40 distinct graphical figures**.
     * **Rule:** Almost every concept slide must be accompanied by a generated plot illustrating the math.
     * **Tools:** Use `ggplot2` (R) for discrete plots (stem plots) and `reticulate/matplotlib` (Python) for continuous plots.
