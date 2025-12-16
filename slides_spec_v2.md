@@ -2,7 +2,7 @@
 
 **Task:** Create a massive, **highly granular** RMarkdown presentation (Output: PowerPoint) for "Chapter 1: Signals and Systems".
 
-**Input:** Read `chapter1.md`. Use specific definitions/examples (Dow Jones, Wind Profile) from the text.
+**Input:** Read `chapter1.md`. Use specific definitions/examples (Dow Jones) from the text.
 
 **Critical Adjustments for Length & Depth:**
 
@@ -16,7 +16,7 @@
 **Part 1: Deep Dive into Signals (Slides 1-12)**
 
 * **Slides 1-3:** Introduction. Define CT vs DT.
-* *Visual (R):* Plot the "Vertical Wind Profile" (CT) from the text data.
+* *Visual (R):* Plot the "Dow Jones Profile" (CT) from the text data.
 
 
 * **Slides 4-7:** The Concept of Sampling.
