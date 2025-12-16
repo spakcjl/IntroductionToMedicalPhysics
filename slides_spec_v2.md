@@ -1,5 +1,3 @@
-###**New Master Prompt**
-
 **Role:** Expert Signal Processing Professor and RMarkdown Developer.
 
 **Task:** Create a massive, **highly granular** RMarkdown presentation (Output: PowerPoint) for "Chapter 1: Signals and Systems".
@@ -89,8 +87,6 @@
 
 **Output Generation:**
 Generate the full RMarkdown code now. Ensure `echo=FALSE` for plots so code is hidden in slides.
-
-
 
 
 
