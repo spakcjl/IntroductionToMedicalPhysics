@@ -203,6 +203,53 @@ plt.show()
 
 > Speaker Notes: This slide visually demonstrates the concept of time shifting. The first plot shows our original signal, a simple triangular pulse centered at zero. The middle plot shows the same signal delayed, or shifted to the right, by 2 units. Every point on the original signal now occurs 2 units later. The third plot shows the signal advanced, or shifted to the left, by 1.5 units.
 
+## Time Scaling
+
+- **Time Scaling** compresses or stretches a signal in time.
+- Consider $x(at)$:
+  - If $|a| > 1$, the signal is **compressed** (it happens faster).
+  - If $0 < |a| < 1$, the signal is **stretched** (it happens slower).
+- Think of playing a tape at a different speed. $x(2t)$ is twice the speed; $x(0.5t)$ is half the speed.
+
+> Speaker Notes: Time scaling is a very intuitive concept. Compressing a signal means the events within the signal occur more quickly, while stretching it means they occur more slowly. Pay close attention to the notation: the factor 'a' appears inside the function argument, and its effect is somewhat counter-intuitive. A larger 'a' leads to compression, not stretching.
+## Visualizing Time Scaling
+
+```{python time_scaling_plot, fig.height=4, fig.width=10}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def triangular_pulse(t, width=2):
+    return np.maximum(0, 1 - np.abs(t / (width/2)))
+
+t = np.linspace(-5, 5, 500)
+x_t = triangular_pulse(t)
+x_2t = triangular_pulse(2 * t)      # Compressed
+x_0_5t = triangular_pulse(0.5 * t)  # Stretched
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
+
+ax1.plot(t, x_t)
+ax1.set_title('Original Signal, $x(t)$')
+ax1.grid(True)
+ax1.set_xlabel('Time (t)')
+ax1.set_ylabel('Amplitude')
+
+ax2.plot(t, x_2t)
+ax2.set_title('Compressed Signal, $x(2t)$')
+ax2.grid(True)
+ax2.set_xlabel('Time (t)')
+
+ax3.plot(t, x_0_5t)
+ax3.set_title('Stretched Signal, $x(0.5t)$')
+ax3.grid(True)
+ax3.set_xlabel('Time (t)')
+
+plt.suptitle('Time Scaling a Signal')
+plt.show()
+```
+
+> Speaker Notes: The original triangular pulse has a width of 2 (from -1 to 1). The compressed signal, x(2t), has its width halved to 1 (from -0.5 to 0.5). The stretched signal, x(0.5t), has its width doubled to 4 (from -2 to 2). This demonstrates the compression and stretching effect of time scaling.
+
 ## Combined Transformations
 
 - We can combine shifting, reversal, and scaling.
@@ -249,6 +296,7 @@ plt.show()
 
 > Speaker Notes: This slide shows the importance of the order of operations. The original signal is a triangular pulse shifted to be centered at t=1. The middle plot shows the result of replacing t with 2t+1. The final plot shows scaling first, then shifting. The results are different.
 
+
 # Transformations of the Independent Variable
 
 ## Time Reversal
@@ -294,54 +342,6 @@ plt.show()
 ```
 
 > Speaker Notes: Here, the signal on the left is an asymmetric triangle. The signal on the right is its time-reversed counterpart. Notice how the ramp up from -1 to 1 in the original signal becomes a ramp down from -1 to 1 in the reversed signal, and the ramp down from 1 to 2 becomes a ramp up from -2 to -1.
-
-## Time Scaling
-
-- **Time Scaling** compresses or stretches a signal in time.
-- Consider $x(at)$:
-  - If $|a| > 1$, the signal is **compressed** (it happens faster).
-  - If $0 < |a| < 1$, the signal is **stretched** (it happens slower).
-- Think of playing a tape at a different speed. $x(2t)$ is twice the speed; $x(0.5t)$ is half the speed.
-
-> Speaker Notes: Time scaling is a very intuitive concept. Compressing a signal means the events within the signal occur more quickly, while stretching it means they occur more slowly. Pay close attention to the notation: the factor 'a' appears inside the function argument, and its effect is somewhat counter-intuitive. A larger 'a' leads to compression, not stretching.
-
-## Visualizing Time Scaling
-
-```{python time_scaling_plot, fig.height=4, fig.width=10}
-import numpy as np
-import matplotlib.pyplot as plt
-
-def triangular_pulse(t, width=2):
-    return np.maximum(0, 1 - np.abs(t / (width/2)))
-
-t = np.linspace(-5, 5, 500)
-x_t = triangular_pulse(t)
-x_2t = triangular_pulse(2 * t)      # Compressed
-x_0_5t = triangular_pulse(0.5 * t)  # Stretched
-
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
-
-ax1.plot(t, x_t)
-ax1.set_title('Original Signal, $x(t)$')
-ax1.grid(True)
-ax1.set_xlabel('Time (t)')
-ax1.set_ylabel('Amplitude')
-
-ax2.plot(t, x_2t)
-ax2.set_title('Compressed Signal, $x(2t)$')
-ax2.grid(True)
-ax2.set_xlabel('Time (t)')
-
-ax3.plot(t, x_0_5t)
-ax3.set_title('Stretched Signal, $x(0.5t)$')
-ax3.grid(True)
-ax3.set_xlabel('Time (t)')
-
-plt.suptitle('Time Scaling a Signal')
-plt.show()
-```
-
-> Speaker Notes: The original triangular pulse has a width of 2 (from -1 to 1). The compressed signal, x(2t), has its width halved to 1 (from -0.5 to 0.5). The stretched signal, x(0.5t), has its width doubled to 4 (from -2 to 2). This demonstrates the compression and stretching effect of time scaling.
 
 ## Periodic vs. Aperiodic Signals
 
@@ -906,6 +906,25 @@ ggplot(combined_df, aes(x = Input, y = Output)) +
 
 > Speaker Notes: The plot on the left shows a clear, one-to-one mapping between input and output. For any given output value, there is only one possible input value. This system is invertible. The plot on the right shows the relationship y=x^2. Notice that for an output value of y=4 (the dashed red line), there are two possible input values, x=-2 and x=2. Since we can't uniquely determine the input, this system is non-invertible.
 
+## Linearity
+
+- A system is **linear** if it possesses the property of **superposition**.
+- **Superposition** = Additivity + Homogeneity
+- **Additivity:** If $x_1(t) \to y_1(t)$ and $x_2(t) \to y_2(t)$, then $x_1(t) + x_2(t) \to y_1(t) + y_2(t)$.
+- **Homogeneity:** If $x(t) \to y(t)$, then $ax(t) \to ay(t)$ for any complex constant $a$.
+- Combined: $ax_1(t) + bx_2(t) \to ay_1(t) + by_2(t)$.
+
+> Speaker Notes: Linearity is arguably the most important property we will study. Linear systems are much easier to analyze than non-linear ones, and many real-world systems can be approximated as linear. The superposition principle allows us to break down complex inputs into simpler components, analyze the system's response to each, and then add the responses up.
+
+## Time-Invariance
+
+- A system is **time-invariant** if its behavior does not depend on what time it is.
+- Mathematically: If $x(t) \to y(t)$, then $x(t-t_0) \to y(t-t_0)$ for any time shift $t_0$.
+- A time-shift in the input signal causes an identical time-shift in the output signal.
+- An RC circuit with constant R and C values is time-invariant. If R or C varied with time, the system would be time-varying.
+
+> Speaker Notes: Time-invariance means the "rules" of the system don't change over time. If you perform an experiment today and get a certain result, you should get the same result if you perform the exact same experiment tomorrow. The combination of Linearity and Time-Invariance (LTI) defines the class of systems we will focus on for most of this course.
+
 ## Causality
 
 - A system is **causal** if its output at any time depends only on the present and past values of the input.
@@ -951,7 +970,6 @@ plt.show()
 ```
 
 > Speaker Notes: The black dots represent a noisy step input. The blue line is the output of a non-causal smoothing filter. Notice how it starts to rise *before* the step at n=30. This is because it averages future values, anticipating the jump. The red line is from a causal filter. It only starts to react at n=30 and exhibits a characteristic lag as it catches up to the input. This lag is typical of real-time causal systems.
-
 ## Stability
 
 - **Stability** is a critical property for most systems. Informally, a stable system is one where small inputs lead to responses that do not diverge.
@@ -1000,26 +1018,6 @@ ggplot(combined_df, aes(x = n)) +
 ```
 
 > Speaker Notes: Both systems are given the same bounded step input. The stable system on the left has a response that rises and settles to a finite, bounded value. The unstable system on the right, however, has a response that grows exponentially without limit. Even though the input is perfectly bounded, the output diverges. This is the hallmark of an unstable system.
-
-## Linearity
-
-- A system is **linear** if it possesses the property of **superposition**.
-- **Superposition** = Additivity + Homogeneity
-- **Additivity:** If $x_1(t) \to y_1(t)$ and $x_2(t) \to y_2(t)$, then $x_1(t) + x_2(t) \to y_1(t) + y_2(t)$.
-- **Homogeneity:** If $x(t) \to y(t)$, then $ax(t) \to ay(t)$ for any complex constant $a$.
-- Combined: $ax_1(t) + bx_2(t) \to ay_1(t) + by_2(t)$.
-
-> Speaker Notes: Linearity is arguably the most important property we will study. Linear systems are much easier to analyze than non-linear ones, and many real-world systems can be approximated as linear. The superposition principle allows us to break down complex inputs into simpler components, analyze the system's response to each, and then add the responses up.
-
-## Time-Invariance
-
-- A system is **time-invariant** if its behavior does not depend on what time it is.
-- Mathematically: If $x(t) \to y(t)$, then $x(t-t_0) \to y(t-t_0)$ for any time shift $t_0$.
-- A time-shift in the input signal causes an identical time-shift in the output signal.
-- An RC circuit with constant R and C values is time-invariant. If R or C varied with time, the system would be time-varying.
-
-> Speaker Notes: Time-invariance means the "rules" of the system don't change over time. If you perform an experiment today and get a certain result, you should get the same result if you perform the exact same experiment tomorrow. The combination of Linearity and Time-Invariance (LTI) defines the class of systems we will focus on for most of this course.
-
 # Chapter 1 Summary
 
 - **Signals** are functions that carry information. They can be continuous-time (CT) or discrete-time (DT).
