@@ -1,50 +1,96 @@
-Role: Expert Data Scientist and Professor of Signals and Systems.
+###**New Master Prompt**
 
-Task: Create a massive, detailed RMarkdown presentation (Output: Powerpoint) covering "Chapter 1: Signals and Systems".
+**Role:** Expert Signal Processing Professor and RMarkdown Developer.
 
-Input: Read the file 'chapter1.md' in this repository for definitions and equations.
+**Task:** Create a massive, **highly granular** RMarkdown presentation (Output: PowerPoint) for "Chapter 1: Signals and Systems".
 
-Note: The source file is a raw text extraction from a PDF. It contains OCR artifacts (e.g., 'Tin' instead of 'pi n', broken integrals like '}~'). You must infer the correct mathematical equations from context and standard Signal Processing conventions.
+**Input:** Read `chapter1.md`. Use specific definitions/examples (Dow Jones, Wind Profile) from the text.
 
-Constraints:
-1.  **Length:** MINIMUM 50 slides. Do not stop early.
-2.  **Visual Density:** You must generate **30 to 40 distinct graphical figures**.
-    * **Rule:** Almost every concept slide must be accompanied by a generated plot illustrating the math.
-    * **Tools:** Use `ggplot2` (R) for discrete plots (stem plots) and `reticulate/matplotlib` (Python) for continuous plots.
-3.  **Math:** Use LaTeX for all equations.
-4.  **Detail:** No bullet-point only slides. Use the "Speaker Notes" section for deep explanations.
+**Critical Adjustments for Length & Depth:**
 
-Structure & Coding Requirements (Follow Strictly):
+1. **Slide Count:** You must generate **at least 55 slides**.
+2. **Pacing:** Do not compress topics. Use a **"Concept \to Math \to Visualization \to Real-world Example"** flow for *every* major topic.
+3. **Dynamical Visuals:** You must use **`gganimate` (in R)** to create animated visualizations for time-shifting and sampling. *Note: If compiling to static PPTX, output these as a sequence of 3 distinct "frame" plots instead of a GIF, but write the code to support animation.*
+4. **Math:** Use LaTeX for all equations.
 
-**Section 1: Signals Basics (Slides 1-10)**
-* **Slide 2 (R):** Plot a "Speech Signal" simulation (high frequency variations) vs "Vertical Wind Profile" (smooth curve).
-* **Slide 3 (R):** Plot a Continuous Sine wave vs. a Discrete Sampled version (Stem plot) on the same graph to define CT vs DT.
-* **Slide 5 (Python):** Plot Instantaneous Power $p(t) = v^2(t)/R$ for a decaying exponential voltage $v(t)$.
-* **Slide 7 (R):** Calculate and plot the Energy accumulation over time for a finite signal.
-* **Slide 9 (Python):** Generate 3 subplots: A signal, the signal shifted right, the signal shifted left.
+**Detailed Execution Plan (Follow Exactly):**
 
-**Section 2: Transformations (Slides 11-20)**
-* **Slide 12 (Python):** Time Reversal. Plot $x(t)$ (an asymmetric triangle) and $x(-t)$.
-* **Slide 14 (Python):** Time Scaling. Plot $x(t)$, $x(2t)$ (compressed), and $x(0.5t)$ (stretched).
-* **Slide 16 (R):** Periodic vs Aperiodic. Plot $\cos(t)$ (periodic) vs $\cos(t) + \sin(\sqrt{2}t)$ (aperiodic).
-* **Slide 18 (R):** Even/Odd Decomposition. Generate an arbitrary sequence $x[n]$ and plot 3 panels: $x[n]$, $Ev\{x[n]\}$, and $Od\{x[n]\}$.
+**Part 1: Deep Dive into Signals (Slides 1-12)**
 
-**Section 3: Exponentials (Slides 21-35)**
-* **Slide 22 (Python):** Real Exponentials. Plot a family of curves $Ce^{at}$ for various positive and negative $a$.
-* **Slide 25 (R):** Complex Exponentials. Plot the Real and Imaginary parts of $e^{j\omega t}$ as 3D or 2-panel 2D plots.
-* **Slide 28 (Python):** Damped Sinusoid. Plot $e^{-at}\cos(\omega t)$ to show the "envelope" concept.
-* **Slide 30 (R):** **CRITICAL:** Plot Discrete Cosine sequences $\cos(\omega n)$ for $\omega = \pi/8$ (periodic) and $\omega = 1$ (non-periodic) to demonstrate DT periodicity rules.
-* **Slide 32 (R):** Frequency Aliasing. Plot $\cos(\omega_0 n)$ and $\cos((\omega_0 + 2\pi)n)$ to show they are identical samples.
+* **Slides 1-3:** Introduction. Define CT vs DT.
+* *Visual (R):* Plot the "Vertical Wind Profile" (CT) from the text data.
 
-**Section 4: Impulses & Steps (Slides 36-42)**
-* **Slide 37 (R):** Visualizing the Unit Step $u[n]$ as a running sum of impulses. Animate or show 3 stages of summation.
-* **Slide 39 (Python):** The derivative of a step is an impulse. Plot a steep sigmoid function (approx step) and its derivative (approx impulse).
-* **Slide 41 (R):** The Sifting Property. Plot a signal $x[n]$ and an impulse $\delta[n-3]$. Show their multiplication isolates the value at $n=3$.
 
-**Section 5: Systems (Slides 43-50)**
-* **Slide 44 (Python):** Memory vs Memoryless. Plot input vs output for a Resistor (linear line) vs a Capacitor (hysteresis loop/integral effect).
-* **Slide 46 (R):** Invertibility. Plot $y=x^2$ (show ambiguity) vs $y=2x$ (clear mapping).
-* **Slide 48 (Python):** Causality. Simulate a non-causal "Smoothing" filter (uses future data) vs a causal filter. Plot the lag.
-* **Slide 50 (R):** Stability. Plot the response of a Stable system (decaying) vs Unstable system (exploding) to a step input.
+* **Slides 4-7:** The Concept of Sampling.
+* *Visual (R):* **Sequence:** Plot a Sine wave. Next slide: Overlay sample points. Next slide: Show *only* the stem plot. Explain that information between points is lost.
 
-Execution: Generate the RMarkdown code now.
+
+* **Slides 8-12:** Energy vs. Power.
+* *Visual (Python):* Define a voltage signal v(t) = 5e^{-0.2t}. Plot Instantaneous Power p(t) in top panel and Cumulative Energy E(t) in bottom panel. Show how Energy converges while Power goes to zero.
+
+
+
+**Part 2: Dynamic Transformations (Slides 13-26)**
+
+* **Slides 13-16:** Time Shifting (t-t_0).
+* *Visual (R - Dynamic):* Create a plot showing a pulse signal x(t). Generate 3 separate plots showing the pulse at t=0, t=2 (delayed), and t=-2 (advanced) to simulate motion.
+
+
+* **Slides 17-20:** Time Scaling (at).
+* *Visual (Python):* Plot x(t) vs x(2t) vs x(0.5t). Explicitly mark the zero-crossings to prove compression/expansion.
+
+
+* **Slides 21-26:** Even/Odd Decomposition.
+* *Theory:* Prove algebra for Ev\{x\} and Od\{x\}.
+* *Visual (R):* Generate a random discrete sequence. Plot the Original, the Even component, and the Odd component on 3 separate slides to show how they sum back to the original.
+
+
+
+**Part 3: The Complex Exponential Family (Slides 27-42)**
+
+* **Slides 27-30:** Real Exponentials.
+* *Visual (Python):* Plot the "Time Constant" concept. Show e^{-t/\tau} for \tau = 0.5, 1, 5. Explain decay rates.
+
+
+* **Slides 31-36:** Periodic Complex Exponentials & Euler.
+* *Visual (R):* **3D Plot:** Use `plotly` or 2D projection to show a "Corkscrew" spiral of e^{j\omega t} in 3D (Time, Real, Imag) to explain why it projects to Sine/Cosine.
+
+
+* **Slides 37-42:** Discrete Periodicity (The "Aliasing" Trap).
+* *Visual (R):* Plot \cos(\omega n) for \omega = \pi/4 (8 samples/cycle) and \omega = 9\pi/4. Show they land on the *exact same points*. This explains why high frequencies alias in DT.
+
+
+
+**Part 4: Singularity Functions (Slides 43-52)**
+
+* **Slides 43-47:** The Unit Impulse \delta[n] and Step u[n].
+* *Visual (R):* **"Running Sum" Animation Sequence.** Show \delta[n], then \delta[n] + \delta[n-1], then the full step u[n].
+
+
+* **Slides 48-52:** The Continuous Impulse \delta(t).
+* *Visual (Python):* The "Rectangular Approximation". Plot rectangles of width \Delta and height 1/\Delta. Show 3 plots as \Delta gets smaller (0.5, 0.1, 0.01) to visualize the limit approaching an impulse.
+
+
+
+**Part 5: System Properties (Slides 53-60+)**
+
+* **Slides 53-56:** Linearity (Superposition).
+* *Visual (Python):* Define a nonlinear system y=x^2. Plot T(x_1+x_2) vs T(x_1)+T(x_2) to visually prove they do not match.
+
+
+* **Slides 57-60:** Time Invariance.
+* *Visual (R):* Input a pulse at t=0, record output. Input pulse at t=5. Plot both outputs to check if they are identical (shifted) shapes.
+
+
+## Styling
+* Use standard academic theme.
+* Ensure all LaTeX equations are rendered correctly (e.g., $$E_{\infty}$$).
+* **Speaker Notes:** Use Pandoc div syntax for all speaker notes. Format them exactly as: `::: notes` [line break] (Note content) [line break] `:::`. Do NOT use `>` blockquotes.
+
+**Output Generation:**
+Generate the full RMarkdown code now. Ensure `echo=FALSE` for plots so code is hidden in slides.
+
+
+
+
+
