@@ -74,7 +74,7 @@ Think of a continuous signal as a smooth, unbroken line, like a wave. A discrete
 
 ### Visualization: Continuous vs. Discrete
 
-```{r continuous_discrete_plot, echo=FALSE, fig.cap="Comparison of a continuous sine wave and its discrete representation."}
+```{r continuous_discrete_plot, echo=FALSE, fig.cap="A continuous sine wave."}
 library(ggplot2)
 library(dplyr)
 
@@ -83,6 +83,19 @@ t_cont <- seq(0, 2 * pi, length.out = 500)
 x_cont <- sin(t_cont)
 df_cont <- data.frame(Time = t_cont, Amplitude = x_cont)
 
+# Plot
+ggplot(df_cont, aes(x = Time, y = Amplitude)) +
+  geom_line() +
+  ggtitle("Continuous Signal: x(t) = sin(t)") +
+  theme_minimal() +
+  labs(x = "Time (t)", y = "Amplitude")
+```
+
+---
+
+### Visualization: Continuous vs. Discrete
+
+```{r discrete_plot, echo=FALSE, fig.cap="A discrete sine wave."}
 # Discrete Signal
 n_discrete <- 0:15
 t_discrete <- n_discrete * (2 * pi / 16)
@@ -90,27 +103,19 @@ x_discrete <- sin(t_discrete)
 df_discrete <- data.frame(Time = t_discrete, Amplitude = x_discrete)
 
 # Plot
-p1 <- ggplot(df_cont, aes(x = Time, y = Amplitude)) +
-  geom_line() +
-  ggtitle("Continuous Signal: x(t) = sin(t)") +
-  theme_minimal() +
-  labs(x = "Time (t)", y = "Amplitude")
-
-p2 <- ggplot(df_discrete, aes(x = Time, y = Amplitude)) +
+ggplot(df_discrete, aes(x = Time, y = Amplitude)) +
   geom_point(size = 3, color = "red") +
   geom_segment(aes(xend = Time, yend = 0), linetype = "dashed") +
   ggtitle("Discrete Signal: x[n] = sin(2πn/16)") +
   theme_minimal() +
   labs(x = "Sample (n)", y = "Amplitude")
-
-# Combine plots
-library(patchwork)
-p1 + p2
 ```
 
 ::: {.notes}
 On the left, we see the smooth `sin(t)`. On the right, we see samples of that same function. The process of converting from continuous to discrete is called **sampling**, a topic we will cover in great detail.
 :::
+
+---
 
 ### Standard Functions in Signal Processing
 
@@ -365,8 +370,17 @@ This equation looks intimidating, but it has a very intuitive meaning. It's a "w
 
 Think of `h(t)` as a "smearing" or "blurring" function. The convolution integral slides the flipped `h(-τ)` along the input `x(τ)` and, at each position `t`, calculates the overlapping area.
 
+---
+
+### Convolution: The Intuition
+
 1.  **Flip:** Take the impulse response `h(τ)` and flip it to get `h(-τ)`.
 2.  **Shift:** Shift it by `t`.
+
+---
+
+### Convolution: The Intuition
+
 3.  **Multiply:** Multiply the input `x(τ)` by the shifted, flipped `h(t - τ)`.
 4.  **Integrate:** Calculate the area under the product. This area is the value of the output `y(t)` at that specific `t`.
 
@@ -1185,6 +1199,11 @@ This leads to the most common analytical reconstruction algorithm: Filtered Back
 1.  Measure all the 1D projections `p(s, θ)`.
 2.  Take the 1D FT of each projection to get `P(k, θ)`.
 3.  Multiply each `P(k, θ)` by the ramp filter `|k|`.
+
+---
+
+### Filtered Backprojection (FBP)
+
 4.  Take the inverse 1D FT of the result.
 5.  Backproject these "filtered" projections.
 
