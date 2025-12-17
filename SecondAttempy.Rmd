@@ -918,9 +918,13 @@ This equation looks complex, but it's just a line integral. For a fixed angle `Î
 
 We can't do a true continuous Radon Transform, but we can simulate it for a few discrete angles by rotating our phantom image and summing the columns.
 
-```{r projection_code, echo=TRUE}
+```{r imager_setup, include=FALSE}
+# imager has a system dependency (X11), so we load it in its own chunk
+# to make debugging easier.
 library(imager)
+```
 
+```{r projection_code, echo=TRUE}
 # Simulate projections at a few angles
 angles <- seq(0, 179, by = 45)
 projections <- list()
