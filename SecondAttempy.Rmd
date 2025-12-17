@@ -7,6 +7,12 @@ output:
     slide_level: 2
 ---
 
+```{r env_setup, include=FALSE}
+# This is a workaround for a specific user environment where X11 is installed in a non-standard location.
+# This sets the dynamic library path so that the `imager` package can find its dependencies.
+Sys.setenv(DYLD_LIBRARY_PATH = "/Users/cjlong/Desktop/Apps/XQuartz_upacked/XQuartzComponent.pkg/opt/X11/lib")
+```
+
 ```{r setup, include=FALSE}
 # It's a good practice to set up the environment in the first chunk.
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
