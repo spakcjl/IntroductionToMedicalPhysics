@@ -932,8 +932,12 @@ for (i in 1:length(angles)) {
   # `magick` is used for rotation
   img_rot <- image_rotate(phantom_magick, angles[i])
 
+  # Crop the image back to the original dimensions to handle resizing during rotation
+  geom_string <- paste0(nrow(phantom_image), "x", ncol(phantom_image), "+0+0^")
+  img_rot_cropped <- image_crop(img_rot, geom_string, gravity = "center")
+
   # Extract the pixel data back into a matrix
-  rot_matrix <- as.numeric(image_data(img_rot, channels = "gray"))
+  rot_matrix <- as.numeric(image_data(img_rot_cropped, channels = "gray"))
   dim(rot_matrix) <- dim(phantom_image)
 
   # Sum the columns to get the 1D projection
