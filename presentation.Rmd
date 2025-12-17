@@ -13,12 +13,10 @@ library(reticulate)
 library(plotly)
 
 # Use the system's python3
-use_python("/usr/bin/python3", required = TRUE)
+use_python(".venv/bin/python", required = TRUE)
 ```
 
-# Part 1: Deep Dive into Signals
-
-## Slide 1: Introduction to Signals
+## Introduction to Signals
 - **What is a signal?**
   - Information conveyed through a pattern of variations.
   - Examples:
@@ -32,7 +30,7 @@ use_python("/usr/bin/python3", required = TRUE)
 Welcome. Today we begin our study of Signals and Systems. At its core, a signal is simply a way to convey information. This information is encoded in a pattern. Think of the voltage in a circuit, the sound of my voice, or the brightness in a picture. These are all signals. We will use mathematics to describe these patterns, treating them as functions of an independent variable, which for most of our work, will be time.
 :::
 
-## Slide 2: Continuous-Time (CT) vs. Discrete-Time (DT) Signals
+## Continuous-Time (CT) vs. Discrete-Time (DT) Signals
 
 - **Continuous-Time (CT) Signals:**
   - Defined for a continuous range of time values.
@@ -48,8 +46,13 @@ Welcome. Today we begin our study of Signals and Systems. At its core, a signal 
 We will study two fundamental types of signals. Continuous-time signals, denoted x(t), exist at every moment in time. Think of the smooth flow of a river. Discrete-time signals, x[n], are like snapshots taken at specific intervals. Much of digital technology, from audio processing to control systems, relies on converting continuous signals into discrete ones through a process called sampling.
 :::
 
-## Slide 3: Visualizing a CT Signal: Dow Jones Index
+## Visualizing a CT Signal: Dow Jones Index
 This plot shows the weekly Dow Jones stock market index from January 5, 1929, to January 4, 1930. It is a real-world example of a signal where the value (stock index) changes over the independent variable (time).
+
+::: notes
+Here is a classic example of a signal from the world of finance. This is the Dow Jones index over a tumultuous year in market history. We can see the dramatic crash of 1929 in this data. This graph is a continuous-time representation, where each point in time has a corresponding index value.
+:::
+
 
 ```{r dow_jones, echo=FALSE, fig.width=8, fig.height=4}
 # Data extracted from Figure 1.6 in chapter1.md
@@ -69,11 +72,7 @@ ggplot(dow_data, aes(x = Date, y = Index)) +
   theme_minimal()
 ```
 
-::: notes
-Here is a classic example of a signal from the world of finance. This is the Dow Jones index over a tumultuous year in market history. We can see the dramatic crash of 1929 in this data. This graph is a continuous-time representation, where each point in time has a corresponding index value.
-:::
-
-## Slide 4: The Concept of Sampling
+## The Concept of Sampling
 - Sampling is the process of converting a continuous-time signal into a discrete-time signal.
 - We measure the value of the CT signal `x(t)` at regular intervals, `t = nT`, where `T` is the sampling period.
 - The resulting discrete-time signal is `x[n] = x(nT)`.
@@ -82,8 +81,12 @@ Here is a classic example of a signal from the world of finance. This is the Dow
 How do we move from the continuous world to the discrete world? Through sampling. Imagine you have a video of a moving car. Taking snapshots at a fixed rate, say every second, is sampling. The sequence of snapshots is your discrete-time signal. The time between snapshots is the sampling period.
 :::
 
-## Slide 5: Visualizing Sampling (1/3): The Original CT Signal
+## Visualizing Sampling (1/3): The Original CT Signal
 Here is a continuous sine wave, `x(t) = sin(t)`. It is defined for all values of `t`.
+
+::: notes
+Let's start with a pure, continuous signal: a simple sine wave. It's smooth, and it exists at every single point in time. This is our "analog" reality before we digitize it.
+:::
 
 ```{r sampling1, echo=FALSE, fig.width=8, fig.height=4}
 t <- seq(0, 2*pi, length.out = 500)
@@ -94,12 +97,14 @@ ggplot(df_cont, aes(x = t, y = y)) +
   theme_minimal()
 ```
 
-::: notes
-Let's start with a pure, continuous signal: a simple sine wave. It's smooth, and it exists at every single point in time. This is our "analog" reality before we digitize it.
-:::
 
-## Slide 6: Visualizing Sampling (2/3): Overlaying Sample Points
+
+## Visualizing Sampling (2/3): Overlaying Sample Points
 Now, we sample the sine wave at regular intervals. The red dots represent the measured values.
+
+::: notes
+Here, we overlay our sampling process onto the continuous wave. The red dots are the only information our digital system will capture. We are taking snapshots at fixed intervals.
+:::
 
 ```{r sampling2, echo=FALSE, fig.width=8, fig.height=4}
 sample_rate <- 8
@@ -113,12 +118,14 @@ ggplot(df_cont, aes(x = t, y = y)) +
   theme_minimal()
 ```
 
-::: notes
-Here, we overlay our sampling process onto the continuous wave. The red dots are the only information our digital system will capture. We are taking snapshots at fixed intervals.
-:::
 
-## Slide 7: Visualizing Sampling (3/3): The Resulting DT Signal
+
+## Visualizing Sampling (3/3): The Resulting DT Signal
 This is the discrete-time signal `x[n]` that results from the sampling. Information *between* the sample points is lost.
+
+::: notes
+This is what our computer sees. Not the smooth curve, but a sequence of values, or samples. Notice the critical point: we have no information about what happened between these samples. This loss of information is a fundamental trade-off in digital signal processing.
+:::
 
 ```{r sampling3, echo=FALSE, fig.width=8, fig.height=4}
 ggplot(df_disc, aes(x = t, y = y)) +
@@ -127,11 +134,10 @@ ggplot(df_disc, aes(x = t, y = y)) +
   labs(title = "Discrete-Time Stem Plot from Sampling", x = "Time (nT)", y = "Amplitude") +
   theme_minimal()
 ```
-::: notes
-This is what our computer sees. Not the smooth curve, but a sequence of values, or samples. Notice the critical point: we have no information about what happened between these samples. This loss of information is a fundamental trade-off in digital signal processing.
-:::
 
-## Slide 8: Signal Energy and Power
+
+
+## Signal Energy and Power
 - We often use concepts of "energy" and "power" to characterize signals, motivated by physical systems.
 - **Total Energy** over all time ($$E_{\infty}$$):
   - CT: $$E_{\infty} = \int_{-\infty}^{\infty} |x(t)|^2 dt$$
@@ -144,7 +150,7 @@ This is what our computer sees. Not the smooth curve, but a sequence of values, 
 To quantify the "size" or "strength" of a signal, we borrow the concepts of energy and power from physics. The total energy is the sum or integral of the squared magnitude over all time. The average power is the time-average of this quantity. A signal can have finite energy, finite power, or neither.
 :::
 
-## Slide 9: Finite Energy vs. Finite Power Signals
+## Finite Energy vs. Finite Power Signals
 - **Energy Signals:**
   - Have finite total energy ($$E_{\infty} < \infty$$).
   - Must have zero average power ($$P_{\infty} = 0$$).
@@ -158,7 +164,7 @@ To quantify the "size" or "strength" of a signal, we borrow the concepts of ener
 This leads to a useful classification. "Energy signals" are transient; they exist for a finite duration or die out. Think of a clap of thunder. "Power signals" are persistent; they go on forever with a steady strength. Think of the 60 Hz hum from an electrical outlet. An energy signal has finite energy and thus zero average power. A power signal has infinite energy but a finite, non-zero average power.
 :::
 
-## Slide 10: Example: Energy of a Decaying Exponential
+## Example: Energy of a Decaying Exponential
 Let's analyze the signal $$v(t) = 5e^{-0.2t}u(t)$$, where $$u(t)$$ is the unit step function.
 
 - This is an **energy signal**. Its amplitude decays over time.
@@ -169,7 +175,7 @@ Let's analyze the signal $$v(t) = 5e^{-0.2t}u(t)$$, where $$u(t)$$ is the unit s
 Let's consider a practical example. A capacitor discharging through a resistor produces a decaying exponential voltage. This is a classic energy signal because its amplitude, and therefore its ability to deliver power, diminishes over time until it's gone. We will now visualize how its power and energy evolve.
 :::
 
-## Slide 11: Visualizing Instantaneous Power and Cumulative Energy
+## Visualizing Instantaneous Power and Cumulative Energy
 ```{python energy_power_plot, echo=FALSE}
 import numpy as np
 import matplotlib.pyplot as plt
@@ -198,11 +204,12 @@ plt.tight_layout()
 plt.show()
 ```
 
+
 ::: notes
 The top plot shows the instantaneous power, p(t). It starts high and decays to zero. The bottom plot shows the cumulative energy, E(t), which is the integral of the power. Notice how the energy accumulates over time and settles at a final, finite value, which is the total energy of the signal. This confirms it is an energy signal.
 :::
 
-## Slide 12: Summary of Part 1
+## Summary of Part 1
 - Signals carry information in patterns.
 - We distinguish between Continuous-Time `x(t)` and Discrete-Time `x[n]` signals.
 - **Sampling** converts CT signals to DT signals, with an inherent loss of information.
@@ -214,9 +221,7 @@ The top plot shows the instantaneous power, p(t). It starts high and decays to z
 To summarize Part 1, we have established a basic language for discussing signals. We know the difference between continuous and discrete time, we understand the critical process of sampling, and we can classify signals based on their energy and power content. Now, we will explore how we can manipulate and transform these signals.
 :::
 
-# Part 2: Dynamic Transformations
-
-## Slide 13: Transformations of the Independent Variable
+## Transformations of the Independent Variable
 - We can transform a signal by manipulating the time variable.
 - Three fundamental transformations:
   1. **Time Shifting:** `y(t) = x(t - t_0)`
@@ -228,7 +233,7 @@ To summarize Part 1, we have established a basic language for discussing signals
 In the second part of our lecture, we'll look at what happens when we manipulate the time axis itself. We can shift time, scale it, or even reverse it. These are not just mathematical curiosities; they model real physical phenomena. Think about the delay in a satellite communication—that's a time shift. Or playing a song at double speed—that's time scaling.
 :::
 
-## Slide 14: Time Shifting
+## Time Shifting
 - A time shift is represented by `y(t) = x(t - t_0)`.
 - If `t_0 > 0`, the signal is **delayed** (shifted to the right).
 - If `t_0 < 0`, the signal is **advanced** (shifted to the left).
@@ -237,8 +242,12 @@ In the second part of our lecture, we'll look at what happens when we manipulate
 Let's focus on time shifting. The notation is `x(t - t_0)`. The key is the sign of `t_0`. A positive `t_0` means a delay—the signal happens later. A negative `t_0` means an advance—the signal happens earlier. Let's visualize this with a simple pulse.
 :::
 
-## Slide 15: Visualizing Time Shifting (1/3): Original Pulse
+## Visualizing Time Shifting (1/3): Original Pulse
 Here is a rectangular pulse signal `x(t)` centered at the origin.
+
+::: notes
+This is our reference signal, a simple pulse `x(t)`. It's centered at time t=0 and has a width of 2.
+:::
 
 ```{r time_shift1, echo=FALSE, fig.width=8, fig.height=4}
 pulse <- function(t) {
@@ -252,12 +261,14 @@ ggplot(df_pulse, aes(x=t, y=y)) + geom_line(size=1) +
   ylim(0, 1.2) + theme_minimal()
 ```
 
-::: notes
-This is our reference signal, a simple pulse `x(t)`. It's centered at time t=0 and has a width of 2.
-:::
 
-## Slide 16: Visualizing Time Shifting (2/3): Delayed Pulse
+
+## Visualizing Time Shifting (2/3): Delayed Pulse
 This is `x(t - 2)`. The pulse is delayed by 2 units, now centered at `t = 2`.
+
+::: notes
+Now we look at `x(t - 2)`. Here, `t_0` is +2, so it's a delay. The entire pulse has shifted to the right by 2 units.
+:::
 
 ```{r time_shift2, echo=FALSE, fig.width=8, fig.height=4}
 df_pulse$y_delayed <- pulse(df_pulse$t - 2)
@@ -266,12 +277,14 @@ ggplot(df_pulse, aes(x=t, y=y_delayed)) + geom_line(size=1, color="blue") +
   ylim(0, 1.2) + theme_minimal()
 ```
 
-::: notes
-Now we look at `x(t - 2)`. Here, `t_0` is +2, so it's a delay. The entire pulse has shifted to the right by 2 units.
-:::
 
-## Slide 17: Visualizing Time Shifting (3/3): Advanced Pulse
+
+## Visualizing Time Shifting (3/3): Advanced Pulse
 This is `x(t + 2)`, which is `x(t - (-2))`. The pulse is advanced by 2 units, now centered at `t = -2`.
+
+::: notes
+Finally, `x(t + 2)`. This corresponds to a `t_0` of -2, so it's an advance. The pulse has shifted to the left by 2 units. This simple sequence illustrates the core idea of time shifting.
+:::
 
 ```{r time_shift3, echo=FALSE, fig.width=8, fig.height=4}
 df_pulse$y_advanced <- pulse(df_pulse$t + 2)
@@ -280,11 +293,9 @@ ggplot(df_pulse, aes(x=t, y=y_advanced)) + geom_line(size=1, color="red") +
   ylim(0, 1.2) + theme_minimal()
 ```
 
-::: notes
-Finally, `x(t + 2)`. This corresponds to a `t_0` of -2, so it's an advance. The pulse has shifted to the left by 2 units. This simple sequence illustrates the core idea of time shifting.
-:::
 
-## Slide 18: Time Scaling
+
+## Time Scaling
 - Time scaling is represented by `y(t) = x(at)`.
 - If `|a| > 1`, the signal is **compressed** in time.
 - If `0 < |a| < 1`, the signal is **expanded** in time.
@@ -294,7 +305,7 @@ Finally, `x(t + 2)`. This corresponds to a `t_0` of -2, so it's an advance. The 
 Next, let's consider time scaling, `x(at)`. The magnitude of `a` determines whether the signal is compressed or expanded. If `a` is greater than 1, the signal happens faster—it's compressed. If `a` is between 0 and 1, the signal happens slower—it's expanded.
 :::
 
-## Slide 19: Visualizing Time Scaling
+## Visualizing Time Scaling
 Comparing `x(t)` (a triangular pulse), `x(2t)` (compressed), and `x(0.5t)` (expanded).
 
 ```{python time_scaling_plot, echo=FALSE}
@@ -329,12 +340,12 @@ plt.legend()
 plt.show()
 ```
 
+
 ::: notes
 This plot clearly shows the effect. The blue line is our original signal, `x(t)`, which goes from -1 to 1. The orange dashed line is `x(2t)`. Notice it's twice as fast and only spans from -0.5 to 0.5. The green dotted line is `x(0.5t)`. It's half the speed and is expanded to span from -2 to 2. The zero-crossings, marked with dots, confirm this compression and expansion.
 :::
 
-
-## Slide 20: Even and Odd Signals
+## Even and Odd Signals
 - A signal can be decomposed into its even and odd components.
 - **Even Signal:** `x_e(t) = x_e(-t)` (Symmetric around the vertical axis)
 - **Odd Signal:** `x_o(t) = -x_o(-t)` (Anti-symmetric around the origin)
@@ -345,7 +356,7 @@ Any signal `x(t)` can be written as `x(t) = x_e(t) + x_o(t)`.
 Another important way to classify signals is by their symmetry. An even signal is a mirror image of itself around the t=0 axis, like the cosine function. An odd signal is symmetric through the origin, like the sine function. What's powerful is that *any* signal, no matter how complex, can be broken down into a sum of a purely even part and a purely odd part.
 :::
 
-## Slide 21: Even/Odd Decomposition Formulas
+## Even/Odd Decomposition Formulas
 - The **even part** of `x(t)` is calculated as:
   $$x_e(t) = \frac{1}{2} [x(t) + x(-t)]$$
 - The **odd part** of `x(t)` is calculated as:
@@ -357,8 +368,12 @@ Another important way to classify signals is by their symmetry. An even signal i
 These are the formulas that perform the decomposition. To get the even part, you add the signal to its time-reversed version and divide by two. This reinforces the symmetric components and cancels the anti-symmetric ones. To get the odd part, you subtract the time-reversed version from the original signal and divide by two. This cancels the symmetric parts and reinforces the anti-symmetric ones.
 :::
 
-## Slide 22: Visualizing Decomposition (1/3): Original DT Signal
+## Visualizing Decomposition (1/3): Original DT Signal
 Here is an arbitrary discrete-time sequence `x[n]`.
+
+::: notes
+Let's visualize this decomposition. We start with this arbitrary sequence of numbers, `x[n]`. It doesn't appear to have any obvious symmetry.
+:::
 
 ```{r even_odd1, echo=FALSE, fig.width=8, fig.height=4}
 n_vals <- -5:5
@@ -372,12 +387,14 @@ ggplot(df_eo, aes(x=n, y=x)) +
   theme_minimal()
 ```
 
-::: notes
-Let's visualize this decomposition. We start with this arbitrary sequence of numbers, `x[n]`. It doesn't appear to have any obvious symmetry.
-:::
 
-## Slide 23: Visualizing Decomposition (2/3): The Even Component
+
+## Visualizing Decomposition (2/3): The Even Component
 This is the even component, `x_e[n] = 0.5 * (x[n] + x[-n])`. Note the symmetry around `n=0`.
+
+::: notes
+Applying the formula, we get the even part of our signal. As you can see, it is perfectly symmetric around the vertical axis.
+:::
 
 ```{r even_odd2, echo=FALSE, fig.width=8, fig.height=4}
 # To compute x[-n], we need to be careful with the indexing
@@ -402,12 +419,14 @@ ggplot(df_eo, aes(x=n, y=xe)) +
   theme_minimal()
 ```
 
-::: notes
-Applying the formula, we get the even part of our signal. As you can see, it is perfectly symmetric around the vertical axis.
-:::
 
-## Slide 24: Visualizing Decomposition (3/3): The Odd Component
+
+## Visualizing Decomposition (3/3): The Odd Component
 This is the odd component, `x_o[n] = 0.5 * (x[n] - x[-n])`. Note the anti-symmetry.
+
+::: notes
+And here is the odd part. Notice how the value at n=2 is the negative of the value at n=-2, and so on. This is the definition of odd symmetry. If you were to add this odd component to the even component from the previous slide, you would perfectly reconstruct the original signal.
+:::
 
 ```{r even_odd3, echo=FALSE, fig.width=8, fig.height=4}
 # We can reuse the x_neg_n_vals from the previous chunk
@@ -427,11 +446,9 @@ ggplot(df_eo, aes(x=n, y=xo)) +
   theme_minimal()
 ```
 
-::: notes
-And here is the odd part. Notice how the value at n=2 is the negative of the value at n=-2, and so on. This is the definition of odd symmetry. If you were to add this odd component to the even component from the previous slide, you would perfectly reconstruct the original signal.
-:::
 
-## Slide 25: Summary of Part 2
+
+## Summary of Part 2
 - **Time Shifting:** `x(t - t_0)` delays or advances a signal.
 - **Time Scaling:** `x(at)` compresses or expands a signal.
 - **Even/Odd Decomposition:** Any signal can be split into a symmetric (even) part and an anti-symmetric (odd) part.
@@ -443,9 +460,7 @@ And here is the odd part. Notice how the value at n=2 is the negative of the val
 So, in this section, we've learned how to shift, scale, and reflect signals in time. We also learned about a powerful analytical tool: decomposing a signal into its even and odd components. These operations form the basis for understanding more complex signal processing techniques.
 :::
 
-# Part 3: The Complex Exponential Family
-
-## Slide 26: The Exponential Signal
+## The Exponential Signal
 - The continuous-time exponential signal is of the form:
   $$x(t) = Ce^{at}$$
 - `C` and `a` are, in general, complex numbers.
@@ -455,7 +470,7 @@ So, in this section, we've learned how to shift, scale, and reflect signals in t
 We now turn to what is arguably the most important family of signals in this entire field: the exponential signals. The form is simple, `Ce^(at)`. But by allowing C and 'a' to be complex numbers, we unlock a rich set of behaviors that can describe a vast range of physical phenomena.
 :::
 
-## Slide 27: Real Exponentials
+## Real Exponentials
 - When `C` and `a` are real numbers.
 - If `a > 0`, the signal **grows** exponentially.
   - Models chain reactions, population growth.
@@ -467,7 +482,7 @@ We now turn to what is arguably the most important family of signals in this ent
 Let's start with the simplest case where C and 'a' are real. If 'a' is positive, we get exponential growth. If 'a' is negative, we get exponential decay, a behavior we've already seen. If 'a' is zero, we just have a constant DC signal.
 :::
 
-## Slide 28: The "Time Constant" Concept (τ)
+## The "Time Constant" Concept (τ)
 - For a decaying exponential, we often write `a = -1/τ`.
   $$x(t) = Ce^{-t/\tau}$$
 - **τ (tau)** is the **time constant**.
@@ -479,7 +494,7 @@ Let's start with the simplest case where C and 'a' are real. If 'a' is positive,
 For decaying exponentials, the concept of the time constant, tau, is extremely useful. It gives us a standardized way to talk about the rate of decay. After one time constant has passed, the signal has decayed to about 37% of its starting value. A small tau means a very fast decay, while a large tau means a long, slow decay.
 :::
 
-## Slide 29: Visualizing the Time Constant
+## Visualizing the Time Constant
 ```{python time_constant_plot, echo=FALSE}
 import numpy as np
 import matplotlib.pyplot as plt
@@ -508,11 +523,12 @@ plt.legend()
 plt.show()
 ```
 
+
 ::: notes
 This plot shows three decaying exponentials with different time constants. The blue curve has the smallest tau, and you can see it decays most quickly. The green curve has the largest tau and decays very slowly. The red dashed line shows the 1/e level, so you can see where each curve crosses that line at `t = tau`.
 :::
 
-## Slide 30: The Complex Exponential: `e^{j\omega_0 t}`
+## The Complex Exponential: `e^{j\omega_0 t}`
 - Now, let `a` be purely imaginary: `a = j\omega_0`.
   $$x(t) = e^{j\omega_0 t}$$
 - Using **Euler's Relation**, we can decompose this into real sinusoidal components:
@@ -523,7 +539,7 @@ This plot shows three decaying exponentials with different time constants. The b
 The magic happens when we let the exponent 'a' be purely imaginary. The signal `e^(j*omega*t)` is called a complex exponential. Euler's relation tells us that this signal is actually composed of a real part, which is a cosine, and an imaginary part, which is a sine. This signal is fundamentally periodic.
 :::
 
-## Slide 31: Why is `e^{j\omega_0 t}` Important?
+## Why is `e^{j\omega_0 t}` Important?
 - It is the mathematical basis for Fourier analysis.
 - It represents signals that oscillate at a single frequency, `\omega_0`.
 - The real and imaginary parts are sinusoids, which are fundamental to describing oscillations in nature (e.g., pendulums, AC circuits, sound waves).
@@ -532,14 +548,18 @@ The magic happens when we let the exponent 'a' be purely imaginary. The signal `
 Why do we care so much about this signal? Because it is the atom of oscillation. It represents a pure, single frequency. The theory of Fourier analysis, which we will study in depth, is built on the idea that we can represent *any* periodic signal as a sum of these complex exponentials. They are the fundamental building blocks of periodic phenomena.
 :::
 
-## Slide 32: Visualizing `e^{j\omega_0 t}`: The Corkscrew
+## Visualizing `e^{j\omega_0 t}`: The Corkscrew
 To truly understand the complex exponential, we can visualize it in 3D. The axes are Time, the Real part, and the Imaginary part. The signal traces out a corkscrew or helix shape as time progresses.
 
 ::: notes
 It can be hard to visualize a complex-valued signal. One of the best ways is to plot it in three dimensions. We let one axis be time, one be the real part (`cos(t)`), and the third be the imaginary part (`sin(t)`). When you do this, the signal traces out a beautiful helix, like a corkscrew, advancing in time.
 :::
 
-## Slide 33: 3D Corkscrew Plot
+## 3D Corkscrew Plot
+::: notes
+Here is the 3D plot. You can see the helical path. The projection of this helix onto the Time-Real plane is a cosine wave. The projection onto the Time-Imaginary plane is a sine wave. This visual confirms the relationship in Euler's formula.
+:::
+
 ```{r 3d_plot, echo=FALSE}
 t <- seq(0, 4*pi, length.out=200)
 df_3d <- data.frame(
@@ -553,11 +573,9 @@ plot_ly(df_3d, x = ~Time, y = ~Real, z = ~Imag, type = 'scatter3d', mode = 'line
   layout(title = "The Corkscrew of e^(jt)")
 ```
 
-::: notes
-Here is the 3D plot. You can see the helical path. The projection of this helix onto the Time-Real plane is a cosine wave. The projection onto the Time-Imaginary plane is a sine wave. This visual confirms the relationship in Euler's formula.
-:::
 
-## Slide 34: Discrete-Time Periodicity
+
+## Discrete-Time Periodicity
 - The discrete-time complex exponential is `x[n] = e^{j\omega_0 n}`.
 - Unlike the CT case, this signal is **not** periodic for all values of `\omega_0`.
 - For `x[n]` to be periodic with period `N`, we require:
@@ -570,7 +588,7 @@ Here is the 3D plot. You can see the helical path. The projection of this helix 
 Now let's consider the discrete-time version, `e^(j*omega*n)`. And here we find a major difference from the continuous-time case. A discrete-time exponential is only periodic if its frequency is a rational number. This is a subtle but critical point.
 :::
 
-## Slide 35: The "Aliasing" Trap in Discrete Time
+## The "Aliasing" Trap in Discrete Time
 - Another key difference: In discrete time, frequencies separated by `2\pi` are identical!
   $$e^{j(\omega_0 + 2\pi)n} = e^{j\omega_0 n} e^{j2\pi n} = e^{j\omega_0 n} \times 1$$
 - This means that a high frequency can look exactly like a low frequency after sampling. This phenomenon is called **aliasing**.
@@ -580,9 +598,13 @@ Now let's consider the discrete-time version, `e^(j*omega*n)`. And here we find 
 Here's another strange and important property of discrete-time signals. Frequencies that are `2*pi` apart are indistinguishable. Adding `2*pi` to the frequency of a discrete exponential gives you back the exact same sequence. This leads to aliasing, where a high-frequency continuous signal, once sampled, can impersonate a lower-frequency signal. This is a major concern in digital signal processing.
 :::
 
-## Slide 36: Visualizing Aliasing
+## Visualizing Aliasing
 Let's plot two different frequencies: `\omega_1 = \pi/4` and `\omega_2 = 9\pi/4`.
 Note that `\omega_2 = \omega_1 + 2\pi`.
+
+::: notes
+This plot is the proof. The solid blue line is the low-frequency cosine. The dashed red line is the high-frequency cosine. But look at the sample points—the blue circles and the red hollow circles. They land on the exact same values. For the discrete-time system, these two vastly different continuous signals are completely indistinguishable.
+:::
 
 ```{r aliasing_plot, echo=FALSE, fig.width=8, fig.height=4}
 n <- 0:15
@@ -613,11 +635,10 @@ ggplot(df_cont_alias, aes(x=t)) +
   theme_minimal()
 
 ```
-::: notes
-This plot is the proof. The solid blue line is the low-frequency cosine. The dashed red line is the high-frequency cosine. But look at the sample points—the blue circles and the red hollow circles. They land on the exact same values. For the discrete-time system, these two vastly different continuous signals are completely indistinguishable.
-:::
 
-## Slide 37: Summary of Part 3
+
+
+## Summary of Part 3
 - The exponential `Ce^{at}` is a fundamental signal family.
 - **Real exponentials** (`a` is real) model growth and decay, governed by the **time constant τ**.
 - **Complex exponentials** (`a` is imaginary) model pure oscillations (sinusoids).
@@ -630,9 +651,7 @@ This plot is the proof. The solid blue line is the low-frequency cosine. The das
 In this section, we've introduced the exponential signal family. We've seen how real exponents lead to growth and decay, and how pure imaginary exponents lead to perpetual oscillation. We also highlighted the crucial and sometimes counter-intuitive properties of their discrete-time counterparts, including the conditions for periodicity and the concept of aliasing.
 :::
 
-# Part 4: Singularity Functions
-
-## Slide 38: The Unit Impulse and Unit Step
+## The Unit Impulse and Unit Step
 - Singularity functions are an important class of idealized signals.
 - They are used as basic building blocks to construct more complex signals.
 - The two key singularity functions are:
@@ -643,7 +662,7 @@ In this section, we've introduced the exponential signal family. We've seen how 
 We now move on to a set of idealized signals called singularity functions. They are not something you can perfectly create in a lab, but they are incredibly powerful mathematical tools. They serve as the fundamental building blocks for representing other signals and analyzing systems. The two most important are the unit impulse and the unit step.
 :::
 
-## Slide 39: The Discrete-Time Unit Impulse and Step
+## The Discrete-Time Unit Impulse and Step
 - **Unit Impulse `\delta[n]`** (also called the unit sample):
   $$\delta[n] = \begin{cases} 1 & n=0 \\ 0 & n \neq 0 \end{cases}$$
 - **Unit Step `u[n]`**:
@@ -653,7 +672,7 @@ We now move on to a set of idealized signals called singularity functions. They 
 In discrete time, these functions are quite simple. The unit impulse, delta[n], is a signal that is 1 at n=0 and zero everywhere else. It's a single, instantaneous blip. The unit step, u[n], is a signal that is zero for all negative time, and then switches on to 1 at n=0 and stays there forever.
 :::
 
-## Slide 40: Relationship between `\delta[n]` and `u[n]`
+## Relationship between `\delta[n]` and `u[n]`
 - The unit impulse is the **first difference** of the unit step:
   $$\delta[n] = u[n] - u[n-1]$$
 - The unit step is the **running sum** of the unit impulse:
@@ -665,8 +684,12 @@ This relationship is crucial for system analysis.
 There is a fundamental relationship between the impulse and the step. The impulse is the difference between a step and a slightly delayed step—it captures the moment of change. Conversely, the step is the running sum of an impulse. You start with nothing, add the impulse at n=0, and you get the step function.
 :::
 
-## Slide 41: Visualizing the "Running Sum" (1/3): `\delta[n]`
+## Visualizing the "Running Sum" (1/3): `\delta[n]`
 The starting point: a single impulse at `n=0`.
+
+::: notes
+Let's build the step function from impulses. We start with a single impulse at the origin, `delta[n]`.
+:::
 
 ```{r running_sum1, echo=FALSE, fig.width=8, fig.height=4}
 df_delta <- data.frame(n=-5:5, y=c(0,0,0,0,0,1,0,0,0,0,0))
@@ -676,12 +699,14 @@ ggplot(df_delta, aes(x=n, y=y)) +
   labs(title="Signal: δ[n]", x="n", y="Value") + theme_minimal() + ylim(0,1.2)
 ```
 
-::: notes
-Let's build the step function from impulses. We start with a single impulse at the origin, `delta[n]`.
-:::
 
-## Slide 42: Visualizing the "Running Sum" (2/3): `\delta[n] + \delta[n-1]`
+
+## Visualizing the "Running Sum" (2/3): `\delta[n] + \delta[n-1]`
 Adding a delayed impulse. The running sum is accumulating.
+
+::: notes
+Now, we add the next impulse in the sequence, `delta[n-1]`. The running sum now has a value of 1 at n=0 and n=1. We are building the step.
+:::
 
 ```{r running_sum2, echo=FALSE, fig.width=8, fig.height=4}
 df_deltas <- data.frame(n=-5:5, y=c(0,0,0,0,0,1,1,0,0,0,0))
@@ -691,12 +716,14 @@ ggplot(df_deltas, aes(x=n, y=y)) +
   labs(title="Running Sum up to n=1: Σ δ[k]", x="n", y="Value") + theme_minimal() + ylim(0,1.2)
 ```
 
-::: notes
-Now, we add the next impulse in the sequence, `delta[n-1]`. The running sum now has a value of 1 at n=0 and n=1. We are building the step.
-:::
 
-## Slide 43: Visualizing the "Running Sum" (3/3): `u[n]`
+
+## Visualizing the "Running Sum" (3/3): `u[n]`
 The full running sum, `u[n] = \sum_{k=0}^{n} \delta[n-k]`, results in the unit step.
+
+::: notes
+As we continue this process for all positive time, the running sum fills in, and we get the unit step function. This shows that the step is composed of a superposition of delayed impulses.
+:::
 
 ```{r running_sum3, echo=FALSE, fig.width=8, fig.height=4}
 df_u <- data.frame(n=-5:5, y=c(0,0,0,0,0,1,1,1,1,1,1))
@@ -706,11 +733,9 @@ ggplot(df_u, aes(x=n, y=y)) +
   labs(title="The Full Running Sum: u[n]", x="n", y="Value") + theme_minimal() + ylim(0,1.2)
 ```
 
-::: notes
-As we continue this process for all positive time, the running sum fills in, and we get the unit step function. This shows that the step is composed of a superposition of delayed impulses.
-:::
 
-## Slide 44: The Continuous-Time Unit Impulse `\delta(t)`
+
+## The Continuous-Time Unit Impulse `\delta(t)`
 - The continuous-time impulse `\delta(t)` is more abstract.
 - It is defined by its properties, not its value. It is NOT infinity at t=0.
 - It is viewed as the limit of a rectangular pulse with **area = 1** as the width approaches zero.
@@ -722,7 +747,7 @@ As we continue this process for all positive time, the running sum fills in, and
 The continuous-time impulse is a more challenging concept. You can't just define its value at t=0. Instead, we define it as a limiting process. Imagine a rectangle of width Delta and height 1/Delta. Its area is always 1. The unit impulse is what you get as you squeeze the width to zero. The most important property is "sifting"—it samples the value of another function at a specific point.
 :::
 
-## Slide 45: The "Rectangular Approximation" (1/3): `\Delta = 0.5`
+## The "Rectangular Approximation" (1/3): `\Delta = 0.5`
 A pulse of width 0.5 and height 2. Area = 1.
 
 ```{python rect_approx1, echo=FALSE}
@@ -744,11 +769,12 @@ plt.show()
 
 ```
 
+
 ::: notes
 Let's visualize this limiting process. Here's our pulse with a width of 0.5. To maintain unit area, its height must be 2.
 :::
 
-## Slide 46: The "Rectangular Approximation" (2/3): `\Delta = 0.1`
+## The "Rectangular Approximation" (2/3): `\Delta = 0.1`
 The pulse gets narrower and taller, but the area remains 1.
 
 ```{python rect_approx2, echo=FALSE}
@@ -763,11 +789,12 @@ plt.grid(True)
 plt.show()
 ```
 
+
 ::: notes
 Now we shrink the width to 0.1. The height must increase to 10 to keep the area equal to 1.
 :::
 
-## Slide 47: The "Rectangular Approximation" (3/3): `\Delta = 0.01`
+## The "Rectangular Approximation" (3/3): `\Delta = 0.01`
 As `\Delta \to 0`, the pulse approaches an impulse.
 
 ```{python rect_approx3, echo=FALSE}
@@ -782,12 +809,12 @@ plt.grid(True)
 plt.show()
 ```
 
+
 ::: notes
 Finally, with a width of 0.01, the height shoots up to 100. In the limit, as the width goes to zero, we get the idealized unit impulse: a function with zero width, infinite height, but a precisely defined area of 1.
 :::
 
-
-## Slide 48: Summary of Part 4
+## Summary of Part 4
 - **Singularity functions** (`\delta` and `u`) are idealized signals used as building blocks.
 - **Discrete Time:**
   - `\delta[n]` is a single non-zero point.
@@ -800,9 +827,7 @@ Finally, with a width of 0.01, the height shoots up to 100. In the limit, as the
 To recap, singularity functions like the impulse and the step are fundamental tools. In discrete time, they are simple to define and visualize. In continuous time, the impulse is more abstract, defined by its sifting property and as the limit of a pulse of unit area.
 :::
 
-# Part 5: System Properties
-
-## Slide 49: What is a System?
+## What is a System?
 - A system is a process that transforms input signals into output signals.
 - We represent it as:
   - `y(t) = T\{x(t)\}`
@@ -816,7 +841,7 @@ To recap, singularity functions like the impulse and the step are fundamental to
 Finally, we turn our attention from signals to systems. A system is anything that takes an input signal and produces an output signal. It's a transformation. We'll spend the rest of this course studying different kinds of systems, but first, we need a language to describe their properties.
 :::
 
-## Slide 50: System Properties
+## System Properties
 We can classify systems based on several key properties:
 1. Memory
 2. Invertibility
@@ -831,7 +856,7 @@ The last two, Linearity and Time-Invariance, are the most important for this cou
 We classify systems based on their fundamental properties. Does it have memory? Can its effects be undone? Does it react only to past events? Does it produce bounded outputs for bounded inputs? And most critically for our purposes: is it linear, and is it time-invariant?
 :::
 
-## Slide 51: Linearity
+## Linearity
 A system is **linear** if it possesses the property of **superposition**.
 1. **Additivity:** `T\{x_1(t) + x_2(t)\} = T\{x_1(t)\} + T\{x_2(t)\}`
 2. **Homogeneity (Scaling):** `T\{ax(t)\} = aT\{x(t)\}`
@@ -842,7 +867,7 @@ In words: The response to a weighted sum of inputs is the weighted sum of the in
 Linearity is a crucial property. It means the system obeys superposition. If you put the sum of two signals in, you get the sum of their individual outputs out. If you scale the input by a factor, the output is scaled by the same factor. This principle dramatically simplifies the analysis of complex systems.
 :::
 
-## Slide 52: Visual Proof of a Nonlinear System
+## Visual Proof of a Nonlinear System
 Let's test the system `y = T\{x\} = x^2` for linearity. We will check if `T\{x_1+x_2\} = T\{x_1\}+T\{x_2\}`.
 
 ```{python linearity_test, echo=FALSE}
@@ -870,11 +895,12 @@ plt.legend()
 plt.show()
 ```
 
+
 ::: notes
 A visual test can be very convincing. Here we test the system `y = x^2`. We take two inputs, x1 and x2. The solid line is the output when we first add the inputs and then apply the system. The dashed line is the output when we apply the system to each input first, and then add the outputs. Because the two lines do not match, the superposition principle fails. This system is not linear.
 :::
 
-## Slide 53: Time-Invariance
+## Time-Invariance
 - A system is **time-invariant** if its behavior does not change over time.
 - If `y(t) = T\{x(t)\}`, then a time-invariant system must satisfy:
   `y(t - t_0) = T\{x(t - t_0)\}`
@@ -884,10 +910,14 @@ A visual test can be very convincing. Here we test the system `y = x^2`. We take
 The second critical property is time-invariance. This means the system's rules are fixed. The behavior you see today is the same behavior you would see tomorrow. If you feed a signal into your stereo today, and then feed the exact same signal in tomorrow but delayed by 24 hours, you expect to hear the exact same output, also delayed by 24 hours. That is time-invariance.
 :::
 
-## Slide 54: Visualizing Time-Invariance
+## Visualizing Time-Invariance
 - Input a pulse at `t=0`, record the output.
 - Input the same pulse, but shifted to `t=5`.
 - If the system is time-invariant, the second output must be identical to the first, just shifted to start at `t=5`.
+
+::: notes
+Let's see what this looks like. We have a hypothetical system that "smears" an input pulse. On the left, we input a pulse at t=0, and we get the smeared blue output. On the right, we input the same pulse but delayed to t=5. The system produces the red output. As you can see, the red output is just a shifted version of the blue one. The shape is identical. This system is time-invariant.
+:::
 
 ```{r ti_viz, echo=FALSE, fig.width=10, fig.height=4}
 # Simulate a simple "smearing" system (e.g., a simple moving average)
@@ -913,11 +943,9 @@ p2 <- ggplot(df_ti, aes(x=t, y=y2)) + geom_line(color="red") +
 p1 + p2
 ```
 
-::: notes
-Let's see what this looks like. We have a hypothetical system that "smears" an input pulse. On the left, we input a pulse at t=0, and we get the smeared blue output. On the right, we input the same pulse but delayed to t=5. The system produces the red output. As you can see, the red output is just a shifted version of the blue one. The shape is identical. This system is time-invariant.
-:::
 
-## Slide 55: LTI Systems
+
+## LTI Systems
 - Systems that are both **Linear** and **Time-Invariant** are called **LTI systems**.
 - This class of systems is immensely important because:
   1. They can be analyzed in great detail with a powerful set of mathematical tools (e.g., convolution, Fourier and Laplace transforms).
@@ -928,7 +956,7 @@ Let's see what this looks like. We have a hypothetical system that "smears" an i
 When a system is both linear AND time-invariant, we call it an LTI system. This is the sweet spot. LTI systems are the focus of our study because they are simple enough to be described by powerful mathematics, yet complex enough to model a huge range of important physical processes, from circuits to mechanical vibrations to communication channels.
 :::
 
-## Slide 56: Course Summary
+## Course Summary
 - We started with the fundamentals of **signals** (CT/DT, energy/power).
 - We explored signal **transformations** (shifting, scaling, even/odd).
 - We dove into the crucial **exponential signal family**.
