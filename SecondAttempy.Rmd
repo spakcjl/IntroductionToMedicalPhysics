@@ -362,7 +362,7 @@ df_noisy <- data.frame(Time = t_conv, Value = noisy_signal, Type = "Noisy")
 # 2. Perform convolution in the discrete domain (moving average)
 # R's 'filter' function is a way to do 1D convolution
 kernel <- rep(1/11, 11) # A simple 11-point averaging kernel
-smoothed_signal <- filter(noisy_signal, kernel, sides = 2)
+smoothed_signal <- stats::filter(noisy_signal, kernel, sides = 2)
 
 df_smooth <- data.frame(Time = t_conv, Value = smoothed_signal, Type = "Smoothed")
 
