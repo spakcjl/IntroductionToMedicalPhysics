@@ -304,6 +304,84 @@ Imagine a comb's teeth; each tooth is a delta function. When we multiply a conti
 
 ---
 
+### Sampling and Aliasing
+
+- When we convert a continuous signal to a discrete one, we are **sampling** it.
+- How often do we need to sample to perfectly capture the signal?
+
+---
+
+### The Nyquist-Shannon Sampling Theorem
+
+- **Theorem:** A continuous signal can be perfectly reconstructed from its samples if the sampling frequency (`fs`) is greater than twice the highest frequency (`fmax`) in the signal.
+- `fs > 2 * fmax`
+- The frequency `2 * fmax` is called the **Nyquist Rate**.
+
+---
+
+### Aliasing: The Consequence of Undersampling
+
+- If you sample below the Nyquist rate (`fs < 2 * fmax`), you get **aliasing**.
+- A high frequency in the original signal will masquerade as a lower frequency in the sampled version.
+- This is a form of irreversible information loss.
+
+---
+
+### Aliasing: Visualization Code
+
+```{r aliasing_code, echo=TRUE}
+# Define a high-frequency signal
+f_high <- 10 # Hz
+t <- seq(0, 1, length.out = 1000)
+signal_cont <- sin(2 * pi * f_high * t)
+
+# Case 1: Adequate Sampling (fs > 2 * fmax)
+fs_good <- 25 # Sampling freq > 2 * 10
+t_good <- seq(0, 1, by = 1/fs_good)
+signal_good <- sin(2 * pi * f_high * t_good)
+
+# Case 2: Undersampling (fs < 2 * fmax)
+fs_bad <- 12 # Sampling freq < 2 * 10
+t_bad <- seq(0, 1, by = 1/fs_bad)
+signal_bad <- sin(2 * pi * f_high * t_bad)
+# The aliased frequency will appear at |f_high - fs_bad| = |10 - 12| = 2 Hz
+aliased_signal_cont <- sin(2 * pi * 2 * t)
+```
+
+---
+
+### Aliasing: Adequate Sampling
+
+```{r aliasing_plot_good, echo=FALSE, fig.cap="A 10 Hz signal sampled at 25 Hz. The samples still capture the wave's shape."}
+df_cont <- data.frame(Time = t, Value = signal_cont)
+df_good <- data.frame(Time = t_good, Value = signal_good)
+
+ggplot() +
+  geom_line(data = df_cont, aes(x = Time, y = Value), color = "gray") +
+  geom_point(data = df_good, aes(x = Time, y = Value), color = "red", size = 3) +
+  ggtitle("Adequate Sampling (fs > 2*fmax)") +
+  theme_minimal()
+```
+
+---
+
+### Aliasing: Undersampling
+
+```{r aliasing_plot_bad, echo=FALSE, fig.cap="A 10 Hz signal sampled at 12 Hz. The samples now trace a 2 Hz wave."}
+df_bad <- data.frame(Time = t_bad, Value = signal_bad)
+df_aliased <- data.frame(Time = t, Value = aliased_signal_cont)
+
+ggplot() +
+  geom_line(data = df_cont, aes(x = Time, y = Value), color = "gray", linetype = "dashed") +
+  geom_line(data = df_aliased, aes(x = Time, y = Value), color = "blue") +
+  geom_point(data = df_bad, aes(x = Time, y = Value), color = "red", size = 3) +
+  ggtitle("Undersampling (fs < 2*fmax)") +
+  labs(subtitle = "Original 10 Hz wave (gray) appears as a 2 Hz wave (blue)") +
+  theme_minimal()
+```
+
+---
+
 ### LSI Systems
 
 - **System:** A process that transforms an input signal `x(t)` into an output signal `y(t)`.
@@ -443,6 +521,46 @@ Think of `h(t)` as a "smearing" or "blurring" function. The convolution integral
 ::: {.notes}
 This "flip, shift, multiply, integrate" process is the mechanical-graphical way to understand convolution. We will visualize this process to make it clearer.
 :::
+
+---
+
+### Convolution: Graphical Example Step 1
+
+- We start with an input signal `x(t)` (a Rect function) and an impulse response `h(t)` (a triangle function).
+
+```{r conv_viz_setup, echo=FALSE}
+x_func <- function(t) ifelse(t >= 0 & t <= 2, 1, 0)
+h_func <- function(t) ifelse(t >= 0 & t <= 1, t, ifelse(t > 1 & t <= 2, 2 - t, 0))
+t_viz <- seq(-1, 5, length.out=1000)
+df_x <- data.frame(t=t_viz, val=x_func(t_viz), type="x(t)")
+df_h <- data.frame(t=t_viz, val=h_func(t_viz), type="h(t)")
+
+ggplot() +
+  geom_line(data=df_x, aes(x=t, y=val, color=type)) +
+  geom_line(data=df_h, aes(x=t, y=val, color=type)) +
+  ggtitle("Input Signal and Impulse Response") + theme_minimal()
+```
+
+---
+
+### Convolution: Graphical Example Step 2
+
+- We "flip" the impulse response to get `h(-τ)`.
+- The integral is `y(t) = ∫ x(τ) h(t - τ) dτ`. We plot for a specific time `t`, say `t=0.5`.
+
+```{r conv_viz_flip, echo=FALSE}
+t_val <- 0.5
+h_flipped_shifted <- function(tau) h_func(t_val - tau)
+df_h_flip <- data.frame(t=t_viz, val=h_flipped_shifted(t_viz), type=paste0("h(",t_val,"-τ)"))
+df_prod <- data.frame(t=t_viz, val=x_func(t_viz) * h_flipped_shifted(t_viz), type="product")
+
+ggplot() +
+  geom_line(data=df_x, aes(x=t, y=val, color=type)) +
+  geom_line(data=df_h_flip, aes(x=t, y=val, color=type)) +
+  geom_area(data=df_prod, aes(x=t, y=val), fill="purple", alpha=0.5) +
+  ggtitle("Flipping, Shifting, and Multiplying") + theme_minimal()
+```
+- The purple area is the product `x(τ)h(t-τ)`. The integral of this area is the value of the convolution `y(t)` at `t=0.5`.
 
 ### Convolution Example: Denoising Code
 
@@ -829,6 +947,43 @@ ggplot(df_gaussian, aes(x = Value)) +
 The histogram perfectly follows the classic bell curve shape, overlaid in blue. This is characteristic of electronic noise in detectors.
 :::
 
+---
+
+### Noise Appearance: Poisson vs. Gaussian
+
+- **Poisson noise is signal-dependent:** Brighter areas are noisier.
+- **Gaussian noise is signal-independent:** Noise is constant everywhere.
+
+---
+
+### Noise Appearance: Visualization Code
+
+```{r noise_appearance_code, echo=TRUE}
+# Create a signal that varies in brightness (a ramp)
+t_ramp <- 1:256
+signal_ramp <- t_ramp
+
+# Add Poisson noise (variance = mean)
+noise_poisson <- rpois(256, lambda = signal_ramp)
+
+# Add Gaussian noise (constant variance)
+noise_gaussian <- rnorm(256, mean = signal_ramp, sd = 10)
+
+df_ramp_p <- data.frame(Time = t_ramp, Value = noise_poisson, Type = "Poisson")
+df_ramp_g <- data.frame(Time = t_ramp, Value = noise_gaussian, Type = "Gaussian")
+```
+
+---
+
+### Noise Appearance: Visualization Plot
+
+```{r noise_appearance_plot, echo=FALSE, fig.cap="Comparison of Poisson and Gaussian noise on a ramp signal."}
+p_p <- ggplot(df_ramp_p, aes(x=Time, y=Value)) + geom_line() + ggtitle("Poisson Noise") + ylim(0,300)
+p_g <- ggplot(df_ramp_g, aes(x=Time, y=Value)) + geom_line() + ggtitle("Gaussian Noise") + ylim(0,300)
+p_p + p_g
+```
+- Notice how the Poisson noise gets much larger as the signal gets brighter (right side of the plot), while the Gaussian noise has a constant "fuzziness" across the entire signal.
+
 ### Signal-to-Noise Ratio (SNR)
 
 SNR is the most fundamental metric of image quality. It quantifies how strong the signal is relative to the background noise.
@@ -900,6 +1055,51 @@ How much CNR do you need? The Rose Criterion provides a rule of thumb.
 This is a very practical rule. If your calculated CNR for a lesion is only 1 or 2, a radiologist is very likely to miss it. We need to design our imaging systems and protocols to ensure the CNR for the targets of interest exceeds this threshold of 5.
 :::
 
+---
+
+### Rose Criterion: Visualization
+
+- Let's visualize the same object at different CNR levels.
+- The object is a faint circle in the center of the image.
+
+---
+
+### Rose Criterion: Visualization Code
+
+```{r rose_criterion_code, echo=TRUE}
+create_cnr_image <- function(cnr) {
+  bg_mean <- 100
+  noise_sd <- 20
+  signal_mean <- bg_mean + cnr * noise_sd
+
+  img <- matrix(rnorm(128*128, mean=bg_mean, sd=noise_sd), nrow=128, ncol=128)
+
+  # Add a circular object in the center
+  x <- seq(-1, 1, length.out = 128)
+  coords <- expand.grid(x = x, y = x)
+  img[coords$x^2 + coords$y^2 < 0.3^2] <- rnorm(sum(coords$x^2 + coords$y^2 < 0.3^2), mean=signal_mean, sd=noise_sd)
+
+  return(img)
+}
+
+img_cnr1 <- create_cnr_image(1)
+img_cnr3 <- create_cnr_image(3)
+img_cnr5 <- create_cnr_image(5)
+```
+
+---
+
+### Rose Criterion: Visualization Plots
+
+```{r rose_criterion_plots, echo=FALSE, fig.cap="Same object at CNR=1 (left), CNR=3 (middle), and CNR=5 (right)."}
+p1 <- ggplot(melt(img_cnr1), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 1") + guides(fill="none") + scale_fill_viridis_c()
+p3 <- ggplot(melt(img_cnr3), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 3") + guides(fill="none") + scale_fill_viridis_c()
+p5 <- ggplot(melt(img_cnr5), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 5") + guides(fill="none") + scale_fill_viridis_c()
+
+p1 + p3 + p5
+```
+- At CNR=1, the object is nearly invisible. At CNR=3, you might see it if you look closely. At CNR=5, it is clearly detectable, confirming the Rose Criterion.
+
 ### Pop Quiz!
 
 An image region has a mean of 100 and a standard deviation of 25. What is its SNR?
@@ -934,6 +1134,44 @@ Just like a signal has a frequency spectrum, the noise in an image also has a fr
 ::: {.notes}
 Think of "white light," which has all colors (frequencies) equally. "White noise" has all spatial frequencies equally. If an image is blurry, it's because high frequencies have been removed. If the *noise* is blurry, it means the high-frequency components of the noise have been removed, leading to a non-flat NPS that drops off at high frequencies.
 :::
+
+---
+
+### NPS: Visualization Code
+
+```{r nps_code, echo=TRUE}
+# Generate a 1D white noise signal
+white_noise <- rnorm(1024)
+nps_white <- Mod(fft(white_noise))^2 / length(white_noise)
+
+# Generate colored noise by filtering white noise (e.g., a simple moving average)
+colored_noise <- stats::filter(white_noise, rep(1/5, 5), sides=2)
+# Remove NAs introduced by filter at the edges
+colored_noise <- colored_noise[!is.na(colored_noise)]
+nps_colored <- Mod(fft(colored_noise))^2 / length(colored_noise)
+
+freq_axis_nps <- 1:length(nps_white)
+df_nps <- data.frame(
+  Frequency = freq_axis_nps,
+  White = nps_white,
+  Colored = c(nps_colored, rep(NA, length(nps_white) - length(nps_colored)))
+)
+```
+
+---
+
+### NPS: Visualization Plot
+
+```{r nps_plot, echo=FALSE, fig.cap="NPS of white noise (flat) vs. colored noise (low-pass)."}
+df_nps_melt <- melt(df_nps, id.vars="Frequency", variable.name="Type", value.name="Power")
+
+ggplot(df_nps_melt, aes(x=Frequency, y=Power, color=Type)) +
+  geom_line() +
+  ggtitle("Noise Power Spectrum (NPS)") +
+  xlim(0, length(nps_white) / 2) + # Show only first half of spectrum
+  theme_minimal()
+```
+- The white noise has a relatively flat spectrum. The colored (filtered) noise has much less power at high frequencies.
 
 ---
 
@@ -1186,6 +1424,29 @@ How do we get from the sinogram back to the image? The Fourier Slice Theorem is 
 This is a profound and powerful link. It connects the 1D measurements we can actually make (the projections) to the 2D frequency spectrum of the object we want to reconstruct. This theorem is the foundation of the most common reconstruction algorithm: filtered backprojection.
 :::
 
+---
+
+### Fourier Slice Theorem: Conceptual Diagram
+
+```{r fst_diagram, echo=FALSE, fig.cap="Illustration of the Fourier Slice Theorem."}
+# Create a representation of a 2D Fourier space
+k_space <- expand.grid(kx = seq(-1, 1, by=0.1), ky = seq(-1, 1, by=0.1))
+
+# Define a slice at a 30-degree angle
+angle_rad <- 30 * pi / 180
+slice <- data.frame(kx = seq(-1, 1, length.out=100) * cos(angle_rad),
+                    ky = seq(-1, 1, length.out=100) * sin(angle_rad))
+
+ggplot() +
+  geom_tile(data = k_space, aes(x=kx, y=ky), fill="gray80", color="white") +
+  geom_line(data=slice, aes(x=kx, y=ky), color="red", size=2) +
+  labs(title="Fourier Slice Theorem",
+       subtitle="The 1D FT of a projection at angle θ... is a slice through the 2D FT at the same angle.",
+       x="kx", y="ky") +
+  coord_fixed() +
+  theme_minimal()
+```
+
 ### Simple Backprojection: The Intuition
 
 The most naive way to reconstruct the image is "simple backprojection."
@@ -1262,6 +1523,24 @@ How do we fix the blur from backprojection? We need to "un-blur" the image.
 ::: {.notes}
 This is the key insight. Simple backprojection gets the low-frequency information right but suppresses the high frequencies. To correct this, we need to boost the high frequencies before or during backprojection. The ramp filter does exactly that. Its shape, `|k|`, looks like a ramp, hence the name.
 :::
+
+---
+
+### The Ramp Filter: Visualization
+
+```{r ramp_filter_plot, echo=FALSE, fig.cap="The Ramp Filter in the frequency domain."}
+k <- seq(-1, 1, length.out = 1000)
+ramp_filter <- abs(k)
+df_ramp <- data.frame(Frequency = k, Value = ramp_filter)
+
+ggplot(df_ramp, aes(x = Frequency, y = Value)) +
+  geom_line(size = 1.5, color = "blue") +
+  ggtitle("The |k| Ramp Filter") +
+  xlab("Spatial Frequency (k)") +
+  ylab("Filter Magnitude") +
+  theme_minimal()
+```
+- The filter multiplies low frequencies near `k=0` by almost zero, and linearly boosts the higher frequencies.
 
 ### Filtered Backprojection (FBP)
 
@@ -1502,6 +1781,33 @@ Ultrasound is a beautiful example of using time-shifting and superposition—cor
 This "delay and sum" process is a form of spatial filtering. It allows the ultrasound machine to scan a beam through the tissue to build up an image line by line, all without any moving parts.
 :::
 
+---
+
+### Beamforming: Conceptual Diagram
+
+```{r beamforming_diagram, echo=FALSE, fig.cap="Diagram of delay-and-sum beamforming to focus a wave."}
+elements <- data.frame(x = seq(-2, 2, by=1), y=0)
+focal_point <- data.frame(x=0, y=-4)
+
+# Create arcs representing wavefronts
+wavefronts <- data.frame()
+for (i in 1:nrow(elements)) {
+  dist <- sqrt((elements$x[i] - focal_point$x)^2 + (elements$y[i] - focal_point$y)^2)
+  delay <- max(sqrt((elements$x - focal_point$x)^2 + (elements$y - focal_point$y)^2)) - dist
+  for(r in seq(0.5, 4, by=0.5)) {
+    wavefronts <- rbind(wavefronts, data.frame(x0=elements$x[i], y0=elements$y[i], r=r, delay=delay))
+  }
+}
+
+ggplot() +
+  geom_point(data=elements, aes(x=x, y=y), size=5, shape=22, fill="blue") +
+  geom_point(data=focal_point, aes(x=x, y=y), size=5, color="red", shape=8) +
+  ggforce::geom_circle(data=wavefronts, aes(x0=x0, y0=y0, r=r), color="gray") +
+  coord_fixed(ylim=c(-5,1)) +
+  theme_void() +
+  ggtitle("Ultrasound Beamforming", subtitle="Outer elements fire earlier to create a focused wavefront.")
+```
+
 ### Modern Topics: Compressed Sensing
 
 - A relatively new paradigm in signal acquisition.
@@ -1511,6 +1817,25 @@ This "delay and sum" process is a form of spatial filtering. It allows the ultra
 ::: {.notes}
 Compressed Sensing (CS) has had a huge impact on MRI. It allows us to intentionally undersample k-space (i.e., scan faster) and then use a sophisticated non-linear reconstruction algorithm to recover a high-quality image. It breaks the old rules of sampling, but only if the signal has a sparse structure.
 :::
+
+---
+
+### Sparsity: Conceptual Diagram
+
+```{r sparsity_diagram, echo=FALSE, fig.cap="A non-sparse signal (left) and a sparse signal (right)."}
+# Non-sparse signal (e.g., sine wave)
+df_dense <- data.frame(x=1:100, y=sin(seq(0,10,length.out=100)))
+
+# Sparse signal (e.g., a few spikes)
+df_sparse <- data.frame(x=1:100, y=0)
+df_sparse$y[c(10, 30, 80)] <- c(1, -0.8, 0.9)
+
+p_d <- ggplot(df_dense, aes(x=x, y=y)) + geom_line() + ggtitle("Non-Sparse Signal")
+p_s <- ggplot(df_sparse, aes(x=x, y=y)) + geom_bar(stat="identity") + ggtitle("Sparse Signal")
+
+p_d + p_s
+```
+- A sparse signal is one where most of the values are zero (or very close to it). Compressed sensing works by finding a transform domain where the signal becomes sparse.
 
 ### Modern Topics: Deep Learning
 
@@ -1543,6 +1868,36 @@ CNNs are used for a huge variety of tasks:
 ::: {.notes}
 The field is moving incredibly quickly, but the core mathematical operations inside these complex networks are still convolutions and non-linear transformations—concepts that are extensions of the material we have covered in this course.
 :::
+
+---
+
+### CNN Architecture: Conceptual Diagram
+
+```{r cnn_diagram, echo=FALSE, fig.cap="A simplified conceptual diagram of a Convolutional Neural Network (CNN) for image reconstruction."}
+# Define the layers of the CNN
+layers <- data.frame(
+  x = c(1, 2, 3, 4, 5, 6),
+  y = c(2, 2, 2, 2, 2, 2),
+  label = c("Input\n(Undersampled\nImage)", "Conv + ReLU", "Conv + ReLU", "...", "Final Conv", "Output\n(Reconstructed\nImage)"),
+  size = c(10, 8, 8, 2, 8, 10),
+  color = c("blue", "red", "red", "white", "red", "green")
+)
+
+# Create the plot
+ggplot(layers, aes(x = x, y = y, label = label)) +
+  geom_point(aes(size = size, color = color), shape = 15) + # Use squares for layers
+  geom_text(vjust = 2.5, size = 3) +
+  geom_segment(data = data.frame(x = 1:5, xend = 2:6), aes(x = x, y = 2, xend = xend, yend = 2), arrow = arrow(length = unit(0.3, "cm")), inherit.aes = FALSE) +
+  scale_size_continuous(range = c(20, 40)) +
+  theme_void() +
+  theme(legend.position = "none") +
+  ggtitle("Basic CNN Structure for Image Reconstruction")
+
+```
+
+- **Input Layer:** Takes the corrupted/undersampled image.
+- **Hidden Layers:** A series of convolutional layers (often with non-linear activation functions like ReLU) extract features and learn the image structure.
+- **Output Layer:** Produces the final, high-quality reconstructed image.
 
 ### Course Summary
 
