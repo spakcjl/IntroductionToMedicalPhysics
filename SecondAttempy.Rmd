@@ -1057,7 +1057,7 @@ Simple backprojection doesn't work perfectly. It produces a characteristic blurr
 
 - High-frequency information (sharp edges) is lost.
 - The resulting image is a blurry version of the original.
-- `f_blurry(x,y) = f(x,y) * (1/r)`, where `r = sqrt(x^2 + y^2)`.
+- `f_blurry(x,y) = f(x,y) * (1/r)`, where `$r = \\sqrt{x^2 + y^2}$`.
 
 ::: notes
 The smearing process intrinsically adds a blur. Each point in the original object gets smeared out into a star-like shape in the reconstructed image. The final image is the true image convolved with this blurring function.
