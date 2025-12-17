@@ -924,7 +924,9 @@ angles <- seq(0, 179, by = 45)
 projections <- list()
 
 # Convert the matrix to a magick image object once
-phantom_magick <- image_read(phantom_image)
+# magick expects a 3D array (height, width, channels), so we reshape the 2D matrix
+phantom_array <- array(phantom_image, dim = c(nrow(phantom_image), ncol(phantom_image), 1))
+phantom_magick <- image_read(phantom_array)
 
 for (i in 1:length(angles)) {
   # `magick` is used for rotation
