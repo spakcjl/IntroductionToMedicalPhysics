@@ -128,8 +128,26 @@ On the left, we see the smooth `sin(t)`. On the right, we see samples of that sa
 
 - Key Functions:
   - The Rectangular Function (Rect)
+
+---
+
+### Standard Functions in Signal Processing
+
+- Key Functions:
   - The Sinc Function
+
+---
+
+### Standard Functions in Signal Processing
+
+- Key Functions:
   - The Dirac Delta Function
+
+---
+
+### Standard Functions in Signal Processing
+
+- Key Functions:
   - The Comb Function
 
 ::: {.notes}
@@ -289,13 +307,24 @@ Imagine a comb's teeth; each tooth is a delta function. When we multiply a conti
 ### LSI Systems
 
 - **System:** A process that transforms an input signal `x(t)` into an output signal `y(t)`.
+
+---
+
+### LSI Systems
+
 - **LSI System:** A system that is both **Linear** and **Shift-Invariant**.
 
 ---
 
 ### LSI Systems
 
-- These properties make systems much easier to analyze. Most imaging systems are approximated as LSI systems.
+- These properties make systems much easier to analyze.
+
+---
+
+### LSI Systems
+
+- Most imaging systems are approximated as LSI systems.
 
 ::: {.notes}
 LSI systems are the cornerstone of this field. If we know a system is LSI, we can predict its output for any input, simply by knowing its response to a single impulse.
@@ -303,10 +332,19 @@ LSI systems are the cornerstone of this field. If we know a system is LSI, we ca
 
 ### Linearity
 
-A system is **linear** if it obeys the principle of superposition.
+- A system is **linear** if it obeys the principle of superposition.
+
+---
+
+### Linearity
 
 1.  **Homogeneity:** `T{a * x(t)} = a * T{x(t)}`
     - (Scaling the input scales the output by the same amount)
+
+---
+
+### Linearity
+
 2.  **Additivity:** `T{x1(t) + x2(t)} = T{x1(t)} + T{x2(t)}`
     - (The response to a sum of inputs is the sum of their individual responses)
 
@@ -316,9 +354,17 @@ In simple terms: if you double the input, you double the output. If you add two 
 
 ### Shift-Invariance (or Time-Invariance)
 
-A system is **shift-invariant** if a shift in the input signal causes an identical shift in the output signal.
+- A system is **shift-invariant** if a shift in the input signal causes an identical shift in the output signal.
+
+---
+
+### Shift-Invariance (or Time-Invariance)
 
 - If `y(t) = T{x(t)}`, then `y(t - t_0) = T{x(t - t_0)}`.
+
+---
+
+### Shift-Invariance (or Time-Invariance)
 
 - The behavior of the system does not change over time or space.
 
@@ -344,7 +390,17 @@ Let's analyze. Let the transformation T be applying interest.
 ### Convolution: The Core of LSI Systems
 
 - Convolution is the mathematical operation that describes the output of an LSI system.
+
+---
+
+### Convolution: The Core of LSI Systems
+
 - Every LSI system is completely characterized by its **Impulse Response Function (IRF)**, `h(t)`.
+
+---
+
+### Convolution: The Core of LSI Systems
+
 - The output `y(t)` is the convolution of the input `x(t)` with the system's IRF `h(t)`.
 
 ::: {.notes}
@@ -461,8 +517,18 @@ This is the equation that takes us from the time domain to the frequency domain.
 $$ X(k) = \int_{-\infty}^{\infty} x(t) e^{-i 2\pi k t} dt $$
 
 - **`X(k)`**: The output. A complex-valued function representing the frequency spectrum. Its magnitude tells you the amplitude of each frequency, and its phase tells you the alignment.
+
+---
+
+### The Fourier Transform: Variable Breakdown
+
 - **`x(t)`**: The input signal as a function of time (or space).
 - **`k`**: The frequency variable.
+
+---
+
+### The Fourier Transform: Variable Breakdown
+
 - **`t`**: The time variable (or space).
 - **`i`**: The imaginary unit, `sqrt(-1)`.
 
@@ -534,6 +600,11 @@ $$
 
 - `f(x,y)`: The 2D image.
 - `F(kx, ky)`: The 2D frequency spectrum.
+
+---
+
+### The 2D Fourier Transform
+
 - `kx, ky`: Spatial frequencies in the x and y directions.
 
 ::: {.notes}
@@ -1220,6 +1291,11 @@ FBP is great, but it struggles with noisy or incomplete data. **Iterative Recons
 - **Basic Idea:**
   1. Start with an initial guess for the image (e.g., a blank image).
   2. Use the Forward Model to simulate what the projections *would* look like from your guess.
+
+---
+
+### Iterative Reconstruction
+
   3. Compare these simulated projections to the *actual* measured projections.
   4. Update your image guess to reduce the error between the simulated and real projections.
   5. Repeat until the error is small.
@@ -1234,7 +1310,16 @@ The iterative problem can be formulated with linear algebra.
 
 - `x`: A vector containing all the pixel values of the image we want to find.
 - `b`: A vector containing all the measured projection data.
+
+---
+
+### Algebraic Formulation (Ax = b)
+
 - `A`: The "System Matrix." A massive matrix where each row describes how the pixel values in `x` contribute to a single measurement in `b`.
+
+---
+
+### Algebraic Formulation (Ax = b)
 
 - The goal is to solve the system of linear equations `Ax = b` for `x`.
 
@@ -1245,7 +1330,17 @@ For any realistic image size, the matrix A is far too enormous to solve by direc
 ### MLEM (Maximum Likelihood Expectation Maximization)
 
 - MLEM is a popular iterative algorithm, especially in PET and SPECT.
+
+---
+
+### MLEM (Maximum Likelihood Expectation Maximization)
+
 - It's based on finding the image `x` that is most likely to have produced the measured data `b`, assuming Poisson statistics.
+
+---
+
+### MLEM (Maximum Likelihood Expectation Maximization)
+
 - It has the desirable property of conserving counts and ensuring pixel values remain non-negative.
 
 ::: {.notes}
@@ -1279,7 +1374,17 @@ In this final module, we will briefly touch upon several advanced topics and oth
 ### Magnetic Resonance Imaging (MRI)
 
 - MRI does not use ionizing radiation.
+
+---
+
+### Magnetic Resonance Imaging (MRI)
+
 - It uses a powerful magnetic field, radiofrequency (RF) pulses, and magnetic field gradients to create images.
+
+---
+
+### Magnetic Resonance Imaging (MRI)
+
 - The raw data collected in an MRI scan is not a projection, but a direct measurement of the object's frequency spectrum.
 
 ::: {.notes}
@@ -1289,7 +1394,17 @@ MRI is one of the most direct applications of the Fourier Transform in medical i
 ### K-Space
 
 - In MRI, the 2D Fourier space of the image is called **k-space**.
+
+---
+
+### K-Space
+
 - The scanner fills k-space line by line according to a specific "pulse sequence."
+
+---
+
+### K-Space
+
 - The final image is simply the inverse 2D Fourier Transform of the collected k-space data.
 
 $$ \text{Image}(x,y) = \mathcal{F}^{-1}\{ \text{k-space}(k_x, k_y) \} $$
@@ -1361,7 +1476,17 @@ Answer: Widespread blurring or "ghosting" artifacts. The center of k-space holds
 ### Ultrasound Imaging
 
 - Uses high-frequency sound waves and their echoes to create images.
+
+---
+
+### Ultrasound Imaging
+
 - The core principle is **beamforming**.
+
+---
+
+### Ultrasound Imaging
+
 - **Beamforming:** By introducing microscopic time delays to the signals from individual elements in a transducer array, a focused ultrasound beam can be formed and steered electronically.
 
 ::: {.notes}
@@ -1390,7 +1515,17 @@ Compressed Sensing (CS) has had a huge impact on MRI. It allows us to intentiona
 ### Modern Topics: Deep Learning
 
 - Deep Learning, particularly Convolutional Neural Networks (CNNs), has revolutionized medical image analysis.
+
+---
+
+### Modern Topics: Deep Learning
+
 - A CNN is a type of neural network that uses convolution as its primary operation.
+
+---
+
+### Modern Topics: Deep Learning
+
 - Instead of using a fixed filter (like a ramp filter or a smoothing filter), a CNN **learns** the optimal filter kernels directly from training data to perform a specific task.
 
 ::: {.notes}
