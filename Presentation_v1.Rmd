@@ -27,7 +27,7 @@ use_python(".venv/bin/python")
 
 
 
-::: {.notes}
+::: notes
 Introduce the fundamental concepts of signals and systems. Use the examples from chapter1.md (RC circuit, automobile, speech) to illustrate the diversity of signals in the real world. Emphasize that the mathematical framework we'll be learning is applicable across many different fields.
 :::
 
@@ -57,7 +57,7 @@ ggplot(combined_data, aes(x = Time, y = Amplitude)) +
 
 
 
-::: {.notes}
+::: notes
 This slide illustrates two different types of signals. The speech signal on the left is characterized by rapid, high-frequency variations. This is typical of audio signals. On the right, the vertical wind profile shows a much smoother, slowly varying curve. This highlights the vast range of behaviors that signals can exhibit.
 :::
 
@@ -90,7 +90,7 @@ ggplot() +
 
 
 
-::: {.notes}
+::: notes
 Here we see the fundamental difference between CT and DT signals. The blue dashed line represents a continuous sine wave, defined for all values of time 't'. The red points represent a discrete-time signal, obtained by "sampling" the continuous signal at regular intervals. Notice the discrete signal is only defined at these specific integer points 'n'. A major theme in this course will be understanding the relationship between a CT signal and the DT signal derived from it.
 :::
 
@@ -108,7 +108,7 @@ Here we see the fundamental difference between CT and DT signals. The blue dashe
 
 
 
-::: {.notes}
+::: notes
 It's important to clarify that these are generalized definitions. The terms 'energy' and 'power' might not correspond to physical energy and power in all contexts. For instance, if x(t) is voltage, the formula for physical energy would require dividing by resistance. However, these definitions provide a consistent way to measure the "size" or "strength" of a signal.
 :::
 
@@ -141,7 +141,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 This plot shows the instantaneous power dissipated by a resistor when a decaying exponential voltage is applied. As the voltage across the resistor decreases exponentially, the power dissipated decreases even faster, following the square of the voltage. This is an example of an energy signal, where the total energy is finite.
 :::
 
@@ -182,7 +182,7 @@ p1 + p2
 
 
 
-::: {.notes}
+::: notes
 On the left, we have a simple rectangular pulse signal that is non-zero only between t=0 and t=2. On the right, we see the accumulated energy of this signal. The energy starts at zero, increases quadratically while the pulse is active, and then holds at its maximum value after the pulse ends. This maximum value represents the total energy of the signal.
 :::
 
@@ -196,7 +196,7 @@ On the left, we have a simple rectangular pulse signal that is non-zero only bet
 
 
 
-::: {.notes}
+::: notes
 Time shifts are fundamental in signal processing. They arise in applications like radar and sonar, where a transmitted signal is received at a later time. Understanding how to mathematically represent and manipulate these shifts is a crucial first step in system analysis.
 :::
 
@@ -234,7 +234,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 This slide visually demonstrates the concept of time shifting. The first plot shows our original signal, a simple triangular pulse centered at zero. The middle plot shows the same signal delayed, or shifted to the right, by 2 units. Every point on the original signal now occurs 2 units later. The third plot shows the signal advanced, or shifted to the left, by 1.5 units.
 :::
 
@@ -284,7 +284,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 This slide shows the importance of the order of operations. The original signal is a triangular pulse shifted to be centered at t=1. The middle plot shows the result of replacing t with 2t+1. The final plot shows scaling first, then shifting. The results are different.
 :::
 
@@ -298,7 +298,7 @@ This slide shows the importance of the order of operations. The original signal 
 
 
 
-::: {.notes}
+::: notes
 Time reversal is like looking in a mirror placed at time zero. The future becomes the past, and the past becomes the future. This operation is straightforward mathematically but has profound implications for concepts like causality, which we will discuss later.
 :::
 
@@ -338,7 +338,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 Here, the signal on the left is an asymmetric triangle. The signal on the right is its time-reversed counterpart. Notice how the ramp up from -1 to 1 in the original signal becomes a ramp down from -1 to 1 in the reversed signal, and the ramp down from 1 to 2 becomes a ramp up from -2 to -1.
 :::
 
@@ -352,7 +352,7 @@ Here, the signal on the left is an asymmetric triangle. The signal on the right 
 
 
 
-::: {.notes}
+::: notes
 Time scaling is a very intuitive concept. Compressing a signal means the events within the signal occur more quickly, while stretching it means they occur more slowly. Pay close attention to the notation: the factor 'a' appears inside the function argument, and its effect is somewhat counter-intuitive. A larger 'a' leads to compression, not stretching.
 :::
 
@@ -394,7 +394,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 The original triangular pulse has a width of 2 (from -1 to 1). The compressed signal, x(2t), has its width halved to 1 (from -0.5 to 0.5). The stretched signal, x(0.5t), has its width doubled to 4 (from -2 to 2). This demonstrates the compression and stretching effect of time scaling.
 :::
 
@@ -409,7 +409,7 @@ The original triangular pulse has a width of 2 (from -1 to 1). The compressed si
 
 
 
-::: {.notes}
+::: notes
 Periodicity is a crucial concept, especially when we get to Fourier analysis. A periodic signal repeats itself exactly over a certain duration, the period. An aperiodic signal never repeats. Many signals in nature can be modeled as sums of periodic signals.
 :::
 
@@ -436,7 +436,7 @@ ggplot(combined_data, aes(x = Time, y = Amplitude)) +
 
 
 
-::: {.notes}
+::: notes
 The top plot shows cos(t), which is clearly periodic. It repeats every 2*pi units. The bottom plot shows the sum of two sinusoids whose frequencies do not have a rational ratio (1 and sqrt(2)). The result is a signal that never exactly repeats its values, making it aperiodic.
 :::
 
@@ -453,7 +453,7 @@ The top plot shows cos(t), which is clearly periodic. It repeats every 2*pi unit
 
 
 
-::: {.notes}
+::: notes
 The concept of even and odd signals is a form of symmetry that simplifies analysis. The decomposition is unique and powerful. Knowing how a system responds to even or odd signals can tell us a lot about its overall behavior.
 :::
 
@@ -491,7 +491,7 @@ ggplot(plot_df, aes(x = n, y = value)) +
 
 
 
-::: {.notes}
+::: notes
 The top plot shows an arbitrary sequence. The middle plot shows its even part, which you can see is perfectly symmetric around n=0. The bottom plot shows its odd part, which is anti-symmetric. If you add the even and odd parts together point by point, you will reconstruct the original signal.
 :::
 
@@ -506,7 +506,7 @@ The top plot shows an arbitrary sequence. The middle plot shows its even part, w
 
 
 
-::: {.notes}
+::: notes
 This signal is a fundamental building block. We will see that a huge class of signals can be represented as a sum of complex exponentials. Understanding their properties is key to the rest of the course. We will first look at the case where 'a' is purely real.
 :::
 
@@ -544,7 +544,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 This plot shows the behavior of the real exponential signal for a fixed C. When 'a' is positive (solid lines), the signal grows exponentially. The larger the value of 'a', the faster the growth. When 'a' is negative (dashed lines), the signal decays exponentially. The more negative 'a' is, the faster the decay. When a=0, the signal is a constant.
 :::
 
@@ -558,7 +558,7 @@ This plot shows the behavior of the real exponential signal for a fixed C. When 
 
 
 
-::: {.notes}
+::: notes
 This is one of the most important signals in the entire field. The real and imaginary parts are sinusoids, which are fundamental to describing oscillations and periodic phenomena. The frequency is determined by omega_0.
 :::
 
@@ -572,7 +572,7 @@ This is one of the most important signals in the entire field. The real and imag
 
 
 
-::: {.notes}
+::: notes
 We will frequently move back and forth between the sinusoidal representation and the complex exponential representation. The complex exponential form is often easier to manipulate mathematically, but the sinusoid is what we often measure in the real world (e.g., voltage, pressure).
 :::
 
@@ -604,7 +604,7 @@ ggplot(plot_data, aes(x = Time, y = Amplitude, color = Part)) +
 
 
 
-::: {.notes}
+::: notes
 This plot shows the real part (cosine) and the imaginary part (sine) of the complex exponential signal. They are both sinusoids, but they are 90 degrees out of phase with each other. When the real part is at a maximum, the imaginary part is zero, and vice-versa.
 :::
 
@@ -617,7 +617,7 @@ This plot shows the real part (cosine) and the imaginary part (sine) of the comp
 
 
 
-::: {.notes}
+::: notes
 The concept of harmonics is fundamental to music and, as we'll see in Chapter 3, to the analysis of any periodic signal. It means that complex periodic signals can be broken down into a sum of simpler signals whose frequencies are neatly related as integer multiples.
 :::
 
@@ -651,7 +651,7 @@ ggplot(harmonic_data, aes(x = Time, y = Amplitude)) +
 
 
 
-::: {.notes}
+::: notes
 This plot shows the first three harmonics of a signal with a fundamental frequency of 2. The top plot (k=1) shows the fundamental signal, which completes two cycles in this interval. The middle plot (k=2) is the second harmonic, which oscillates twice as fast. The bottom plot (k=3) is the third harmonic, oscillating three times as fast. All are periodic with the same fundamental period.
 :::
 
@@ -665,7 +665,7 @@ This plot shows the first three harmonics of a signal with a fundamental frequen
 
 
 
-::: {.notes}
+::: notes
 This is the most general form of the complex exponential. It's a powerful signal that can represent pure growth/decay, pure oscillation, or, most interestingly, oscillations that grow or decay in amplitude over time.
 :::
 
@@ -677,7 +677,7 @@ This is the most general form of the complex exponential. It's a powerful signal
 
 
 
-::: {.notes}
+::: notes
 Damped sinusoids are what you see in the real world when something oscillates and then settles down. Think of a guitar string being plucked or a car's suspension after hitting a bump. The oscillation is the sinusoidal part, and the settling down is the exponential decay.
 :::
 
@@ -711,7 +711,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 This plot clearly illustrates the concept of a damped sinusoid. The blue curve is the signal itself, oscillating back and forth. The red dashed lines form the exponential envelope. The amplitude of the oscillations is bounded by this decaying envelope, showing how the signal loses energy over time.
 :::
 
@@ -725,7 +725,7 @@ This plot clearly illustrates the concept of a damped sinusoid. The blue curve i
 
 
 
-::: {.notes}
+::: notes
 This is one of the most important and sometimes tricky concepts. In discrete time, the signal is only defined at integer values of 'n'. For the signal to repeat, the total phase shift after N samples (which is omega_0 * N) must be a multiple of 2*pi. This condition only holds if the frequency is a rational multiple of 2*pi.
 :::
 
@@ -756,7 +756,7 @@ ggplot(combined_data, aes(x = n, y = value)) +
 
 
 
-::: {.notes}
+::: notes
 The top plot shows cos(pi*n/8). You can see a clear repeating pattern. The fundamental period is N=16, because after 16 samples, the phase has advanced by (pi/8)*16 = 2*pi. The bottom plot shows cos(n). Although the underlying continuous cosine is periodic, the samples of it are not. The pattern of sample values never exactly repeats, making the discrete-time signal non-periodic.
 :::
 
@@ -769,7 +769,7 @@ The top plot shows cos(pi*n/8). You can see a clear repeating pattern. The funda
 
 
 
-::: {.notes}
+::: notes
 This is a profound concept. In continuous time, increasing the frequency omega always increases the rate of oscillation. In discrete time, this is not true. Once you go past pi, the perceived rate of oscillation starts to decrease. Frequencies like 3*pi/2 and -pi/2 are identical. This is called aliasing.
 :::
 
@@ -804,7 +804,7 @@ ggplot(plot_df, aes(x = n, y = value, color = type)) +
 
 
 
-::: {.notes}
+::: notes
 This plot demonstrates aliasing perfectly. We are plotting two discrete signals with very different underlying frequencies: pi/4 and pi/4 + 2*pi. However, when we sample them at integer values of 'n', the resulting sequences are identical. The points lie exactly on top of each other. This shows that in discrete time, these two frequencies are aliases of one another.
 :::
 
@@ -824,7 +824,7 @@ This plot demonstrates aliasing perfectly. We are plotting two discrete signals 
 
 
 
-::: {.notes}
+::: notes
 The impulse and step functions are idealized signals that are incredibly important in system analysis. The impulse can be thought of as a single, instantaneous burst, while the step represents a signal that turns on at a specific time and stays on. Their relationship as a difference and a sum is a key concept.
 :::
 
@@ -862,7 +862,7 @@ ggplot(all_stages, aes(x = n, y = sum_val)) +
 
 
 
-::: {.notes}
+::: notes
 This sequence of plots shows how the unit step is constructed by summing impulses. In Stage 1, we sum up to n=0, and we only capture the impulse at n=0. In Stage 2, we sum up to n=2, accumulating the impulses at 0, 1, and 2. In the final stage, the running sum has accumulated all impulses up to the current point, resulting in the full unit step sequence.
 :::
 
@@ -876,7 +876,7 @@ This sequence of plots shows how the unit step is constructed by summing impulse
 
 
 
-::: {.notes}
+::: notes
 The continuous-time impulse is a "singularity function." It's not a function in the traditional sense. It's an idealization of a pulse that is infinitely short in duration but has a finite area of one. We can visualize it as the limit of a sequence of progressively shorter and taller pulses.
 :::
 
@@ -918,7 +918,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 Since the unit step has a discontinuity, its derivative is formally undefined. However, we can think of it by approximating the step with a smooth, steep function like the sigmoid shown on the left. The derivative of this steep function, shown on the right, is a narrow, tall pulse. As the sigmoid gets steeper and closer to an ideal step, its derivative gets narrower and taller, approaching our idealization of the unit impulse.
 :::
 
@@ -934,7 +934,7 @@ Since the unit step has a discontinuity, its derivative is formally undefined. H
 
 
 
-::: {.notes}
+::: notes
 The term "sifting" is very descriptive. Think of the impulse as a sieve that only lets the value of the signal at one specific point pass through. All other values are multiplied by zero and eliminated. We will use this property extensively when we discuss system responses.
 :::
 
@@ -970,7 +970,7 @@ ggplot(plot_df, aes(x = n, y = value)) +
 
 
 
-::: {.notes}
+::: notes
 The top plot shows an arbitrary signal x[n]. The middle plot shows a unit impulse located at n=3. When we multiply these two signals point-by-point, the result is zero everywhere except at n=3, where the impulse is non-zero. The value of the resulting signal at n=3 is exactly the value of the original signal x[n] at n=3.
 :::
 
@@ -988,7 +988,7 @@ The top plot shows an arbitrary signal x[n]. The middle plot shows a unit impuls
 
 
 
-::: {.notes}
+::: notes
 The concept of memory is about cause and effect. In a memoryless system, the effect is simultaneous with the cause. In a system with memory, past inputs influence the present output. This is often associated with the system's ability to store energy, like a capacitor storing charge or a mass storing kinetic energy.
 :::
 
@@ -1033,7 +1033,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 The plot on the left shows the input-output relationship for a resistor. It's a straight line, meaning the output voltage is always directly proportional to the input current at that instant. This is a memoryless system. The plot on the right shows the relationship for a capacitor with a sinusoidal input current. It forms a loop, known as a hysteresis loop. For a given input current, the output voltage can be different depending on the history of the input, demonstrating the system's memory.
 :::
 
@@ -1046,7 +1046,7 @@ The plot on the left shows the input-output relationship for a resistor. It's a 
 
 
 
-::: {.notes}
+::: notes
 Invertibility is crucial in applications like communications and data compression. If you apply an encoding or compression scheme to a signal, you need to be able to reverse the process to get the original signal back. This means the encoding system must be invertible.
 :::
 
@@ -1075,7 +1075,7 @@ ggplot(combined_df, aes(x = Input, y = Output)) +
 
 
 
-::: {.notes}
+::: notes
 The plot on the left shows a clear, one-to-one mapping between input and output. For any given output value, there is only one possible input value. This system is invertible. The plot on the right shows the relationship y=x^2. Notice that for an output value of y=4 (the dashed red line), there are two possible input values, x=-2 and x=2. Since we can't uniquely determine the input, this system is non-invertible.
 :::
 
@@ -1089,7 +1089,7 @@ The plot on the left shows a clear, one-to-one mapping between input and output.
 
 
 
-::: {.notes}
+::: notes
 Causality is a fundamental constraint in systems that operate in real time. You can't react to an event before it happens. However, if you have a complete recording of a signal, you can design a non-causal filter. For example, to smooth a noisy signal at a certain point, you might want to average the values just before and just after that point, which requires knowledge of "future" data.
 :::
 
@@ -1129,7 +1129,7 @@ plt.show()
 
 
 
-::: {.notes}
+::: notes
 The black dots represent a noisy step input. The blue line is the output of a non-causal smoothing filter. Notice how it starts to rise *before* the step at n=30. This is because it averages future values, anticipating the jump. The red line is from a causal filter. It only starts to react at n=30 and exhibits a characteristic lag as it catches up to the input. This lag is typical of real-time causal systems.
 :::
 
@@ -1147,7 +1147,7 @@ The black dots represent a noisy step input. The blue line is the output of a no
 
 
 
-::: {.notes}
+::: notes
 Stability is about predictability and control. If you put a bounded, well-behaved signal into a system, you expect the output to also be well-behaved. If it can "explode" or grow without limit, the system is unstable and often dangerous in physical applications. Think of the inverted pendulum vs. the stable one.
 :::
 
@@ -1189,7 +1189,7 @@ ggplot(combined_df, aes(x = n)) +
 
 
 
-::: {.notes}
+::: notes
 Both systems are given the same bounded step input. The stable system on the left has a response that rises and settles to a finite, bounded value. The unstable system on the right, however, has a response that grows exponentially without limit. Even though the input is perfectly bounded, the output diverges. This is the hallmark of an unstable system.
 :::
 
@@ -1206,7 +1206,7 @@ Both systems are given the same bounded step input. The stable system on the lef
 
 
 
-::: {.notes}
+::: notes
 Linearity is arguably the most important property we will study. Linear systems are much easier to analyze than non-linear ones, and many real-world systems can be approximated as linear. The superposition principle allows us to break down complex inputs into simpler components, analyze the system's response to each, and then add the responses up.
 :::
 
@@ -1219,7 +1219,7 @@ Linearity is arguably the most important property we will study. Linear systems 
 
 
 
-::: {.notes}
+::: notes
 Time-invariance means the "rules" of the system don't change over time. If you perform an experiment today and get a certain result, you should get the same result if you perform the exact same experiment tomorrow. The combination of Linearity and Time-Invariance (LTI) defines the class of systems we will focus on for most of this course.
 :::
 
@@ -1233,6 +1233,6 @@ Time-invariance means the "rules" of the system don't change over time. If you p
 
 
 
-::: {.notes}
+::: notes
 This chapter has laid the mathematical groundwork for everything that follows. We've introduced the language of signals and systems. The key takeaway is the classification of signals and the properties of systems. In the next chapter, we will focus heavily on the class of Linear Time-Invariant (LTI) systems.
 :::

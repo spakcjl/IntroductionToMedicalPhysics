@@ -1,970 +1,2199 @@
 ---
-title: "Chapter 1: Signals and Systems"
-output: powerpoint_presentation
-always_allow_html: true
+title: "Signal Processing & Systems in Medical Physics"
+author: "Graduate Medical Physics Program"
+date: "`r Sys.Date()`"
+output:
+  powerpoint_presentation:
+    slide_level: 2
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+# It's a good practice to set up the environment in the first chunk.
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# Load necessary packages
 library(ggplot2)
 library(dplyr)
-library(patchwork)
 library(reticulate)
-library(plotly)
+library(patchwork)
+library(magick)
+library(reshape2)
+library(ggforce)
 
-# Use the system's python3
-use_python(".venv/bin/python", required = TRUE)
+# Configure reticulate to use the system's default Python
+# This avoids issues with virtual environments in this context.
+tryCatch({
+  use_python(Sys.which("python3"), required = TRUE)
+}, error = function(e) {
+  message("Python3 not found or reticulate failed. Python chunks will not work.")
+  message(e)
+})
 ```
 
-## Introduction to Signals
-- **What is a signal?**
-  - Information conveyed through a pattern of variations.
-  - Examples:
-    - Electrical signals (voltage, current)
-    - Audio signals (acoustic pressure)
-    - Images (brightness, color)
-- We represent signals as functions of one or more independent variables.
-- This chapter focuses on signals with a **single independent variable: time (t)**.
+## Module 1: Deterministic Systems
 
-::: {.notes}
-Welcome. Today we begin our study of Signals and Systems. At its core, a signal is simply a way to convey information. This information is encoded in a pattern. Think of the voltage in a circuit, the sound of my voice, or the brightness in a picture. These are all signals. We will use mathematics to describe these patterns, treating them as functions of an independent variable, which for most of our work, will be time.
+::: notes
+Welcome to the first module. We will establish the fundamental mathematical and conceptual toolkit for signal and systems analysis. Pay close attention to the definitions, as they are the building blocks for everything that follows.
 :::
 
-## Continuous-Time (CT) vs. Discrete-Time (DT) Signals
+---
+### Introduction to Signals
 
-- **Continuous-Time (CT) Signals:**
-  - Defined for a continuous range of time values.
-  - The independent variable `t` is continuous.
-  - Notation: `x(t)`
-- **Discrete-Time (DT) Signals:**
-  - Defined only at specific, discrete points in time.
-  - The independent variable `n` is an integer.
-  - Notation: `x[n]`
-  - Often arise from *sampling* a continuous-time signal.
+---
+- **What is a signal?** A signal is a function that conveys information about a phenomenon.
+---
+- In medical physics, signals are representations of physical quantities.
 
-::: {.notes}
-We will study two fundamental types of signals. Continuous-time signals, denoted x(t), exist at every moment in time. Think of the smooth flow of a river. Discrete-time signals, x[n], are like snapshots taken at specific intervals. Much of digital technology, from audio processing to control systems, relies on converting continuous signals into discrete ones through a process called sampling.
+---
+
+### Introduction to Signals: Examples
+
+---
+- Voltage from a detector
+---
+- X-ray intensity pattern
+---
+- Magnetic resonance signal over time
+
+::: notes
+A signal is just a function. For example, the temperature in this room over the course of the day is a signal. An MR signal is a function of time. An image is a function of spatial coordinates.
 :::
 
-## Visualizing a CT Signal: Dow Jones Index
-This plot shows the weekly Dow Jones stock market index from January 5, 1929, to January 4, 1930. It is a real-world example of a signal where the value (stock index) changes over the independent variable (time).
+---
 
-::: {.notes}
-Here is a classic example of a signal from the world of finance. This is the Dow Jones index over a tumultuous year in market history. We can see the dramatic crash of 1929 in this data. This graph is a continuous-time representation, where each point in time has a corresponding index value.
+### Continuous vs. Discrete Signals
+
+---
+- **Continuous-Time Signal:** Defined for all points in time. Represented as `x(t)`.
+---
+- **Discrete-Time Signal:** Defined only at specific, discrete points in time. Represented as `x[n]`.
+
+---
+
+### Continuous vs. Discrete Signals
+
+---
+- This distinction is crucial for understanding digital acquisition and processing.
+
+::: notes
+Think of a continuous signal as a smooth, unbroken line, like a wave. A discrete signal is a series of individual points, like readings taken every second. Computers can only work with discrete signals.
 :::
 
+---
 
-```{r dow_jones, echo=FALSE, fig.width=8, fig.height=4}
-# Data extracted from Figure 1.6 in chapter1.md
-time <- seq(as.Date("1929-01-05"), as.Date("1930-01-04"), by="weeks")
-# Approximate values eyeballed from the graph
-dow_values <- c(300, 310, 305, 320, 315, 310, 325, 330, 340, 350, 345, 330, 320, 310, 300, 290, 280, 295, 305, 320, 330, 355, 350, 340, 330, 350, 370, 380, 375, 360, 350, 320, 290, 260, 230, 200, 220, 240, 250, 260, 255, 250, 245, 240, 250, 260, 270, 265, 260, 250, 245, 255)
+### Visualization: Continuous vs. Discrete
 
-# Ensure the data has the same length as time
-dow_data <- data.frame(Date = time[1:length(dow_values)], Index = dow_values)
+---
+```{r continuous_discrete_plot, echo=FALSE, fig.cap="A continuous sine wave."}
+library(ggplot2)
+library(dplyr)
 
-ggplot(dow_data, aes(x = Date, y = Index)) +
+# Continuous Signal
+t_cont <- seq(0, 2 * pi, length.out = 500)
+x_cont <- sin(t_cont)
+df_cont <- data.frame(Time = t_cont, Amplitude = x_cont)
+
+# Plot
+ggplot(df_cont, aes(x = Time, y = Amplitude)) +
   geom_line() +
-  labs(title = "Dow Jones Industrial Average (Weekly)",
-       subtitle = "Jan 5, 1929 to Jan 4, 1930",
-       x = "Date",
-       y = "Index Value") +
-  theme_minimal()
+  ggtitle("Continuous Signal: x(t) = sin(t)") +
+  theme_minimal() +
+  labs(x = "Time (t)", y = "Amplitude")
 ```
+---
+---
 
-## The Concept of Sampling
-- Sampling is the process of converting a continuous-time signal into a discrete-time signal.
-- We measure the value of the CT signal `x(t)` at regular intervals, `t = nT`, where `T` is the sampling period.
-- The resulting discrete-time signal is `x[n] = x(nT)`.
+### Visualization: Continuous vs. Discrete
 
-::: {.notes}
-How do we move from the continuous world to the discrete world? Through sampling. Imagine you have a video of a moving car. Taking snapshots at a fixed rate, say every second, is sampling. The sequence of snapshots is your discrete-time signal. The time between snapshots is the sampling period.
-:::
+---
+```{r discrete_plot, echo=FALSE, fig.cap="A discrete sine wave."}
+# Discrete Signal
+n_discrete <- 0:15
+t_discrete <- n_discrete * (2 * pi / 16)
+x_discrete <- sin(t_discrete)
+df_discrete <- data.frame(Time = t_discrete, Amplitude = x_discrete)
 
-## Visualizing Sampling (1/3): The Original CT Signal
-Here is a continuous sine wave, `x(t) = sin(t)`. It is defined for all values of `t`.
-
-::: {.notes}
-Let's start with a pure, continuous signal: a simple sine wave. It's smooth, and it exists at every single point in time. This is our "analog" reality before we digitize it.
-:::
-
-```{r sampling1, echo=FALSE, fig.width=8, fig.height=4}
-t <- seq(0, 2*pi, length.out = 500)
-df_cont <- data.frame(t = t, y = sin(t))
-ggplot(df_cont, aes(x = t, y = y)) +
-  geom_line() +
-  labs(title = "Continuous Sine Wave: x(t) = sin(t)", x = "Time (t)", y = "Amplitude") +
-  theme_minimal()
+# Plot
+ggplot(df_discrete, aes(x = Time, y = Amplitude)) +
+  geom_point(size = 3, color = "red") +
+  geom_segment(aes(xend = Time, yend = 0), linetype = "dashed") +
+  ggtitle("Discrete Signal: x[n] = sin(2πn/16)") +
+  theme_minimal() +
+  labs(x = "Sample (n)", y = "Amplitude")
 ```
-
-
-
-## Visualizing Sampling (2/3): Overlaying Sample Points
-Now, we sample the sine wave at regular intervals. The red dots represent the measured values.
-
-::: {.notes}
-Here, we overlay our sampling process onto the continuous wave. The red dots are the only information our digital system will capture. We are taking snapshots at fixed intervals.
+---
+::: notes
+On the left, we see the smooth `sin(t)`. On the right, we see samples of that same function. The process of converting from continuous to discrete is called **sampling**, a topic we will cover in great detail.
 :::
 
-```{r sampling2, echo=FALSE, fig.width=8, fig.height=4}
-sample_rate <- 8
-n <- 0:16
-df_disc <- data.frame(t = n * (2*pi/sample_rate), y = sin(n * (2*pi/sample_rate)))
+---
 
-ggplot(df_cont, aes(x = t, y = y)) +
-  geom_line(color="lightblue") +
-  geom_point(data = df_disc, color="red", size=3) +
-  labs(title = "Sampling the Sine Wave", x = "Time (t)", y = "Amplitude") +
-  theme_minimal()
-```
+### Standard Functions in Signal Processing
 
+---
+- We use a set of "building block" functions to model and analyze more complex signals.
+---
+- Understanding these is essential for a deep intuition of systems.
 
+---
 
-## Visualizing Sampling (3/3): The Resulting DT Signal
-This is the discrete-time signal `x[n]` that results from the sampling. Information *between* the sample points is lost.
+### Standard Functions in Signal Processing
 
-::: {.notes}
-This is what our computer sees. Not the smooth curve, but a sequence of values, or samples. Notice the critical point: we have no information about what happened between these samples. This loss of information is a fundamental trade-off in digital signal processing.
+---
+- Key Functions:
+---
+  - The Rectangular Function (Rect)
+
+---
+
+### Standard Functions in Signal processing
+---
+- Key Functions:
+---
+  - The Sinc Function
+
+---
+
+### Standard Functions in Signal processing
+---
+- Key Functions:
+---
+  - The Dirac Delta Function
+
+---
+
+### Standard Functions in Signal processing
+---
+- Key Functions:
+---
+  - The Comb Function
+
+::: notes
+These functions are like the primary colors of signal processing. We can combine them to create almost any signal we need.
 :::
 
-```{r sampling3, echo=FALSE, fig.width=8, fig.height=4}
-ggplot(df_disc, aes(x = t, y = y)) +
-  geom_segment(aes(xend=t, yend=0)) +
-  geom_point() +
-  labs(title = "Discrete-Time Stem Plot from Sampling", x = "Time (nT)", y = "Amplitude") +
-  theme_minimal()
-```
+---
+### The Rectangular Function: Math
 
+The Rectangular function, `rect(t)`, is a simple but vital function.
 
+$$
+\text{rect}(t) =
+\begin{cases}
+      1 & |t| \le 1/2 \\
+      0 & |t| > 1/2
+\end{cases}
+$$
 
-## Signal Energy and Power
-- We often use concepts of "energy" and "power" to characterize signals, motivated by physical systems.
-- **Total Energy** over all time ($$E_{\infty}$$):
-  - CT: $$E_{\infty} = \int_{-\infty}^{\infty} |x(t)|^2 dt$$
-  - DT: $$E_{\infty} = \sum_{n=-\infty}^{\infty} |x[n]|^2$$
-- **Average Power** over all time ($$P_{\infty}$$):
-  - CT: $$P_{\infty} = \lim_{T \to \infty} \frac{1}{2T} \int_{-T}^{T} |x(t)|^2 dt$$
-  - DT: $$P_{\infty} = \lim_{N \to \infty} \frac{1}{2N+1} \sum_{n=-N}^{N} |x[n]|^2$$
+---
+### The Rectangular Function: Visualization
 
-::: {.notes}
-To quantify the "size" or "strength" of a signal, we borrow the concepts of energy and power from physics. The total energy is the sum or integral of the squared magnitude over all time. The average power is the time-average of this quantity. A signal can have finite energy, finite power, or neither.
-:::
-
-## Finite Energy vs. Finite Power Signals
-- **Energy Signals:**
-  - Have finite total energy ($$E_{\infty} < \infty$$).
-  - Must have zero average power ($$P_{\infty} = 0$$).
-  - These are signals that are time-limited or decay to zero.
-- **Power Signals:**
-  - Have infinite total energy ($$E_{\infty} = \infty$$).
-  - But have finite average power ($$0 < P_{\infty} < \infty$$).
-  - Periodic signals (like sine waves) are a key example.
-
-::: {.notes}
-This leads to a useful classification. "Energy signals" are transient; they exist for a finite duration or die out. Think of a clap of thunder. "Power signals" are persistent; they go on forever with a steady strength. Think of the 60 Hz hum from an electrical outlet. An energy signal has finite energy and thus zero average power. A power signal has infinite energy but a finite, non-zero average power.
-:::
-
-## Example: Energy of a Decaying Exponential
-Let's analyze the signal $$v(t) = 5e^{-0.2t}u(t)$$, where $$u(t)$$ is the unit step function.
-
-- This is an **energy signal**. Its amplitude decays over time.
-- **Instantaneous Power** across a 1Ω resistor would be $$p(t) = v(t)^2 = 25e^{-0.4t}u(t)$$.
-- **Total Energy** is the integral of the instantaneous power.
-
-::: {.notes}
-Let's consider a practical example. A capacitor discharging through a resistor produces a decaying exponential voltage. This is a classic energy signal because its amplitude, and therefore its ability to deliver power, diminishes over time until it's gone. We will now visualize how its power and energy evolve.
-:::
-
-## Visualizing Instantaneous Power and Cumulative Energy
-```{python energy_power_plot, echo=FALSE}
-import numpy as np
-import matplotlib.pyplot as plt
-
-t = np.linspace(0, 20, 500)
-v = 5 * np.exp(-0.2 * t)
-p = v**2
-E = 25 / 0.4 * (1 - np.exp(-0.4 * t))
-
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
-
-ax1.plot(t, p)
-ax1.set_title("Instantaneous Power p(t)")
-ax1.set_ylabel("Power (W)")
-ax1.grid(True)
-
-ax2.plot(t, E)
-ax2.set_title("Cumulative Energy E(t)")
-ax2.set_ylabel("Energy (J)")
-ax2.set_xlabel("Time (t)")
-ax2.axhline(y=25/0.4, color='r', linestyle='--', label='Total Energy E_inf = 62.5 J')
-ax2.legend()
-ax2.grid(True)
-
-plt.tight_layout()
-plt.show()
-```
-
-
-::: {.notes}
-The top plot shows the instantaneous power, p(t). It starts high and decays to zero. The bottom plot shows the cumulative energy, E(t), which is the integral of the power. Notice how the energy accumulates over time and settles at a final, finite value, which is the total energy of the signal. This confirms it is an energy signal.
-:::
-
-## Summary of Part 1
-- Signals carry information in patterns.
-- We distinguish between Continuous-Time `x(t)` and Discrete-Time `x[n]` signals.
-- **Sampling** converts CT signals to DT signals, with an inherent loss of information.
-- **Energy** and **Power** are metrics to classify signals.
-  - **Energy Signals:** Finite energy, decay over time.
-  - **Power Signals:** Finite power, persist over time (e.g., periodic signals).
-
-::: {.notes}
-To summarize Part 1, we have established a basic language for discussing signals. We know the difference between continuous and discrete time, we understand the critical process of sampling, and we can classify signals based on their energy and power content. Now, we will explore how we can manipulate and transform these signals.
-:::
-
-## Transformations of the Independent Variable
-- We can transform a signal by manipulating the time variable.
-- Three fundamental transformations:
-  1. **Time Shifting:** `y(t) = x(t - t_0)`
-  2. **Time Scaling:** `y(t) = x(at)`
-  3. **Time Reversal:** `y(t) = x(-t)` (a special case of scaling)
-- These operations are essential for modeling and analyzing real-world systems like radar, sonar, and audio playback.
-
-::: {.notes}
-In the second part of our lecture, we'll look at what happens when we manipulate the time axis itself. We can shift time, scale it, or even reverse it. These are not just mathematical curiosities; they model real physical phenomena. Think about the delay in a satellite communication—that's a time shift. Or playing a song at double speed—that's time scaling.
-:::
-
-## Time Shifting
-- A time shift is represented by `y(t) = x(t - t_0)`.
-- If `t_0 > 0`, the signal is **delayed** (shifted to the right).
-- If `t_0 < 0`, the signal is **advanced** (shifted to the left).
-
-::: {.notes}
-Let's focus on time shifting. The notation is `x(t - t_0)`. The key is the sign of `t_0`. A positive `t_0` means a delay—the signal happens later. A negative `t_0` means an advance—the signal happens earlier. Let's visualize this with a simple pulse.
-:::
-
-## Visualizing Time Shifting (1/3): Original Pulse
-Here is a rectangular pulse signal `x(t)` centered at the origin.
-
-::: {.notes}
-This is our reference signal, a simple pulse `x(t)`. It's centered at time t=0 and has a width of 2.
-:::
-
-```{r time_shift1, echo=FALSE, fig.width=8, fig.height=4}
-pulse <- function(t) {
-  ifelse(t >= -1 & t <= 1, 1, 0)
+```{r rect_function_plot, echo=FALSE, fig.cap="The Rectangular Function"}
+rect_func <- function(t) {
+  return(ifelse(abs(t) <= 0.5, 1, 0))
 }
-df_pulse <- data.frame(t = seq(-4, 4, length.out=500))
-df_pulse$y <- pulse(df_pulse$t)
+t <- seq(-2, 2, length.out = 1000)
+rect_data <- data.frame(Time = t, Amplitude = rect_func(t))
 
-ggplot(df_pulse, aes(x=t, y=y)) + geom_line(size=1) +
-  labs(title="Original Pulse Signal: x(t)", x="t", y="Amplitude") +
-  ylim(0, 1.2) + theme_minimal()
+ggplot(rect_data, aes(x = Time, y = Amplitude)) +
+  geom_line(size = 1) +
+  ggtitle("The Rectangular Function") +
+  theme_minimal() +
+  ylim(0, 1.2)
 ```
 
-
-
-## Visualizing Time Shifting (2/3): Delayed Pulse
-This is `x(t - 2)`. The pulse is delayed by 2 units, now centered at `t = 2`.
-
-::: {.notes}
-Now we look at `x(t - 2)`. Here, `t_0` is +2, so it's a delay. The entire pulse has shifted to the right by 2 units.
+::: notes
+A perfect box centered at zero with a width of 1. This function can model a pulse, a pixel, or an imaging aperture.
 :::
 
-```{r time_shift2, echo=FALSE, fig.width=8, fig.height=4}
-df_pulse$y_delayed <- pulse(df_pulse$t - 2)
-ggplot(df_pulse, aes(x=t, y=y_delayed)) + geom_line(size=1, color="blue") +
-  labs(title="Delayed Pulse: x(t - 2)", x="t", y="Amplitude") +
-  ylim(0, 1.2) + theme_minimal()
-```
+---
+### The Sinc Function: Math
 
+The Sinc function is the Fourier Transform of the Rect function. It is incredibly important in imaging and sampling theory.
 
+$$
+\text{sinc}(t) = \frac{\sin(\pi t)}{\pi t}
+$$
 
-## Visualizing Time Shifting (3/3): Advanced Pulse
-This is `x(t + 2)`, which is `x(t - (-2))`. The pulse is advanced by 2 units, now centered at `t = -2`.
+---
+### The Sinc Function: Visualization
 
-::: {.notes}
-Finally, `x(t + 2)`. This corresponds to a `t_0` of -2, so it's an advance. The pulse has shifted to the left by 2 units. This simple sequence illustrates the core idea of time shifting.
-:::
+```{r sinc_function_plot, echo=FALSE, fig.cap="The Sinc Function"}
+sinc_func <- function(t) {
+  # Handle the t=0 case where the formula is undefined
+  result <- ifelse(t == 0, 1, sin(pi * t) / (pi * t))
+  return(result)
+}
+t_sinc <- seq(-5, 5, length.out = 2000)
+sinc_data <- data.frame(Time = t_sinc, Amplitude = sinc_func(t_sinc))
 
-```{r time_shift3, echo=FALSE, fig.width=8, fig.height=4}
-df_pulse$y_advanced <- pulse(df_pulse$t + 2)
-ggplot(df_pulse, aes(x=t, y=y_advanced)) + geom_line(size=1, color="red") +
-  labs(title="Advanced Pulse: x(t + 2)", x="t", y="Amplitude") +
-  ylim(0, 1.2) + theme_minimal()
-```
-
-
-
-## Time Scaling
-- Time scaling is represented by `y(t) = x(at)`.
-- If `|a| > 1`, the signal is **compressed** in time.
-- If `0 < |a| < 1`, the signal is **expanded** in time.
-- If `a < 0`, the signal is also **time-reversed**.
-
-::: {.notes}
-Next, let's consider time scaling, `x(at)`. The magnitude of `a` determines whether the signal is compressed or expanded. If `a` is greater than 1, the signal happens faster—it's compressed. If `a` is between 0 and 1, the signal happens slower—it's expanded.
-:::
-
-## Visualizing Time Scaling
-Comparing `x(t)` (a triangular pulse), `x(2t)` (compressed), and `x(0.5t)` (expanded).
-
-```{python time_scaling_plot, echo=FALSE}
-import numpy as np
-import matplotlib.pyplot as plt
-
-def triangular_pulse(t):
-    return np.maximum(0, 1 - np.abs(t))
-
-t = np.linspace(-4, 4, 1000)
-x_t = triangular_pulse(t)
-x_2t = triangular_pulse(2 * t)
-x_05t = triangular_pulse(0.5 * t)
-
-plt.figure(figsize=(10, 4))
-plt.plot(t, x_t, label='x(t)')
-plt.plot(t, x_2t, label='x(2t) [Compressed]', linestyle='--')
-plt.plot(t, x_05t, label='x(0.5t) [Expanded]', linestyle=':')
-plt.title("Time Scaling of a Triangular Pulse")
-plt.xlabel("Time (t)")
-plt.ylabel("Amplitude")
-plt.grid(True)
-plt.axhline(0, color='black', linewidth=0.5)
-plt.axvline(0, color='black', linewidth=0.5)
-
-# Mark zero-crossings
-plt.scatter([-1, 1], [0, 0], color='blue', zorder=5) # x(t)
-plt.scatter([-0.5, 0.5], [0, 0], color='red', zorder=5) # x(2t)
-plt.scatter([-2, 2], [0, 0], color='green', zorder=5) # x(0.5t)
-
-plt.legend()
-plt.show()
-```
-
-
-::: {.notes}
-This plot clearly shows the effect. The blue line is our original signal, `x(t)`, which goes from -1 to 1. The orange dashed line is `x(2t)`. Notice it's twice as fast and only spans from -0.5 to 0.5. The green dotted line is `x(0.5t)`. It's half the speed and is expanded to span from -2 to 2. The zero-crossings, marked with dots, confirm this compression and expansion.
-:::
-
-## Even and Odd Signals
-- A signal can be decomposed into its even and odd components.
-- **Even Signal:** `x_e(t) = x_e(-t)` (Symmetric around the vertical axis)
-- **Odd Signal:** `x_o(t) = -x_o(-t)` (Anti-symmetric around the origin)
-
-Any signal `x(t)` can be written as `x(t) = x_e(t) + x_o(t)`.
-
-::: {.notes}
-Another important way to classify signals is by their symmetry. An even signal is a mirror image of itself around the t=0 axis, like the cosine function. An odd signal is symmetric through the origin, like the sine function. What's powerful is that *any* signal, no matter how complex, can be broken down into a sum of a purely even part and a purely odd part.
-:::
-
-## Even/Odd Decomposition Formulas
-- The **even part** of `x(t)` is calculated as:
-  $$x_e(t) = \frac{1}{2} [x(t) + x(-t)]$$
-- The **odd part** of `x(t)` is calculated as:
-  $$x_o(t) = \frac{1}{2} [x(t) - x(-t)]$$
-
-- The same formulas apply to discrete-time signals `x[n]`.
-
-::: {.notes}
-These are the formulas that perform the decomposition. To get the even part, you add the signal to its time-reversed version and divide by two. This reinforces the symmetric components and cancels the anti-symmetric ones. To get the odd part, you subtract the time-reversed version from the original signal and divide by two. This cancels the symmetric parts and reinforces the anti-symmetric ones.
-:::
-
-## Visualizing Decomposition (1/3): Original DT Signal
-Here is an arbitrary discrete-time sequence `x[n]`.
-
-::: {.notes}
-Let's visualize this decomposition. We start with this arbitrary sequence of numbers, `x[n]`. It doesn't appear to have any obvious symmetry.
-:::
-
-```{r even_odd1, echo=FALSE, fig.width=8, fig.height=4}
-n_vals <- -5:5
-x_n <- c(0, 0, 2, 3, 1, -1, -2, 0, 1, 0, 0)
-df_eo <- data.frame(n = n_vals, x = x_n)
-
-ggplot(df_eo, aes(x=n, y=x)) +
-  geom_segment(aes(xend=n, yend=0)) +
-  geom_point() +
-  labs(title="Original DT Signal x[n]", x="n", y="Value") +
+ggplot(sinc_data, aes(x = Time, y = Amplitude)) +
+  geom_line(size = 1) +
+  geom_hline(yintercept = 0, linetype="dashed") +
+  ggtitle("The Sinc Function") +
   theme_minimal()
 ```
 
-
-
-## Visualizing Decomposition (2/3): The Even Component
-This is the even component, `x_e[n] = 0.5 * (x[n] + x[-n])`. Note the symmetry around `n=0`.
-
-::: {.notes}
-Applying the formula, we get the even part of our signal. As you can see, it is perfectly symmetric around the vertical axis.
+::: notes
+Notice the central lobe and the decaying side lobes. The zero crossings are at integer values of t. This shape is fundamental to understanding image resolution and aliasing.
 :::
 
-```{r even_odd2, echo=FALSE, fig.width=8, fig.height=4}
-# To compute x[-n], we need to be careful with the indexing
-# x_n corresponds to n_vals from -5 to 5.
-# x[-n] means we need the value of x at -n.
-# e.g., for n=2, we need x[-2], which is at index 4 in x_n
-# e.g., for n=-2, we need x[2], which is at index 8 in x_n
-x_neg_n_vals <- sapply(df_eo$n, function(n_val) {
-  # Find the value of x at -n_val
-  if (-n_val %in% df_eo$n) {
-    df_eo$x[df_eo$n == -n_val]
-  } else {
-    0
-  }
-})
-df_eo$xe <- 0.5 * (df_eo$x + x_neg_n_vals)
+---
+### Pop Quiz!
 
-ggplot(df_eo, aes(x=n, y=xe)) +
-  geom_segment(aes(xend=n, yend=0)) +
-  geom_point() +
-  labs(title="Even Component xe[n]", x="n", y="Value") +
+What is the value of `rect(1)`?
+
+A) 1
+B) 0.5
+C) 0
+D) Undefined
+
+::: notes
+Answer: C) 0. The function is only 1 when the absolute value of t is less than or equal to 0.5. Since 1 > 0.5, the value is 0.
+:::
+
+---
+### The Dirac Delta Function: Concept
+
+The Dirac Delta, `δ(t)`, is a "generalized function." It's not a true function in the classical sense.
+
+---
+- It is infinitely tall.
+---
+- It is infinitesimally narrow.
+---
+- Its total area is exactly 1.
+
+$$
+\delta(t) = 0 \text{ for } t \ne 0, \quad \text{and} \quad \int_{-\infty}^{\infty} \delta(t) dt = 1
+$$
+
+---
+### The Dirac Delta Function: Visualization
+
+```{r dirac_delta_plot, echo=FALSE, fig.cap="Conceptual visualization of the Dirac Delta function."}
+ggplot() +
+  geom_segment(aes(x = 0, y = 0, xend = 0, yend = 1),
+               arrow = arrow(length = unit(0.5, "cm")), size = 1.5) +
+  geom_hline(yintercept = 0) +
+  xlim(-2, 2) +
+  ylim(0, 1.2) +
+  ggtitle("The Dirac Delta Function δ(t)") +
+  xlab("t") +
+  ylab("") +
+  theme_minimal() +
+  theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+```
+
+::: notes
+Since the delta function is an idealization, we can't plot it literally. We represent it as an arrow at t=0 to signify an impulse with an area of 1 concentrated at that single point.
+:::
+
+---
+### The Dirac Delta: Sifting Property
+
+The most important property of the delta function is the **sifting property**. It "pulls out" the value of a function at a single point.
+
+$$
+\int_{-\infty}^{\infty} f(t) \delta(t - t_0) dt = f(t_0)
+$$
+
+::: notes
+This property is the foundation of sampling theory. Multiplying a signal by a delta function is like taking a perfect, instantaneous sample of that signal at that exact point.
+:::
+
+---
+### The Comb Function (Shah Function)
+
+The Comb function is an infinite series of Dirac delta functions spaced at regular intervals.
+
+$$
+\text{comb}(t) = \sum_{n=-\infty}^{\infty} \delta(t - nT)
+$$
+
+---
+- It is also known as the Shah function or an impulse train.
+---
+- It is the mathematical model for the process of sampling.
+
+---
+### The Comb Function: Visualization
+
+```{r comb_function_plot, echo=FALSE, fig.cap="Conceptual visualization of the Comb function."}
+comb_data <- data.frame(x = -3:3)
+
+ggplot(comb_data, aes(x=x)) +
+  geom_segment(aes(xend = x, y = 0, yend = 1),
+               arrow = arrow(length = unit(0.4, "cm")), size = 1) +
+  geom_hline(yintercept = 0) +
+  xlim(-4, 4) +
+  ylim(0, 1.2) +
+  ggtitle("The Comb Function") +
+  xlab("t") +
+  ylab("") +
+  theme_minimal() +
+  theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+```
+
+::: notes
+Imagine a comb's teeth; each tooth is a delta function. When we multiply a continuous signal by a comb function, we are left with a series of discrete samples—the value of the signal at the location of each "tooth."
+:::
+
+---
+
+### Sampling and Aliasing
+
+---
+- When we convert a continuous signal to a discrete one, we are **sampling** it.
+---
+- How often do we need to sample to perfectly capture the signal?
+
+---
+
+### The Nyquist-Shannon Sampling Theorem
+
+---
+- **Theorem:** A continuous signal can be perfectly reconstructed from its samples if the sampling frequency (`fs`) is greater than twice the highest frequency (`fmax`) in the signal.
+---
+- `fs > 2 * fmax`
+---
+- The frequency `2 * fmax` is called the **Nyquist Rate**.
+
+---
+
+### Aliasing: The Consequence of Undersampling
+
+---
+- If you sample below the Nyquist rate (`fs < 2 * fmax`), you get **aliasing**.
+---
+- A high frequency in the original signal will masquerade as a lower frequency in the sampled version.
+---
+- This is a form of irreversible information loss.
+
+---
+
+### Aliasing: Visualization Code
+
+---
+```{r aliasing_code, echo=TRUE}
+# Define a high-frequency signal
+f_high <- 10 # Hz
+t <- seq(0, 1, length.out = 1000)
+signal_cont <- sin(2 * pi * f_high * t)
+
+# Case 1: Adequate Sampling (fs > 2 * fmax)
+fs_good <- 25 # Sampling freq > 2 * 10
+t_good <- seq(0, 1, by = 1/fs_good)
+signal_good <- sin(2 * pi * f_high * t_good)
+
+# Case 2: Undersampling (fs < 2 * fmax)
+fs_bad <- 12 # Sampling freq < 2 * 10
+t_bad <- seq(0, 1, by = 1/fs_bad)
+signal_bad <- sin(2 * pi * f_high * t_bad)
+# The aliased frequency will appear at |f_high - fs_bad| = |10 - 12| = 2 Hz
+aliased_signal_cont <- sin(2 * pi * 2 * t)
+```
+---
+---
+
+### Aliasing: Adequate Sampling
+
+---
+```{r aliasing_plot_good, echo=FALSE, fig.cap="A 10 Hz signal sampled at 25 Hz. The samples still capture the wave's shape."}
+df_cont <- data.frame(Time = t, Value = signal_cont)
+df_good <- data.frame(Time = t_good, Value = signal_good)
+
+ggplot() +
+  geom_line(data = df_cont, aes(x = Time, y = Value), color = "gray") +
+  geom_point(data = df_good, aes(x = Time, y = Value), color = "red", size = 3) +
+  ggtitle("Adequate Sampling (fs > 2*fmax)") +
   theme_minimal()
 ```
+---
+---
 
+### Aliasing: Undersampling
 
+---
+```{r aliasing_plot_bad, echo=FALSE, fig.cap="A 10 Hz signal sampled at 12 Hz. The samples now trace a 2 Hz wave."}
+df_bad <- data.frame(Time = t_bad, Value = signal_bad)
+df_aliased <- data.frame(Time = t, Value = aliased_signal_cont)
 
-## Visualizing Decomposition (3/3): The Odd Component
-This is the odd component, `x_o[n] = 0.5 * (x[n] - x[-n])`. Note the anti-symmetry.
-
-::: {.notes}
-And here is the odd part. Notice how the value at n=2 is the negative of the value at n=-2, and so on. This is the definition of odd symmetry. If you were to add this odd component to the even component from the previous slide, you would perfectly reconstruct the original signal.
-:::
-
-```{r even_odd3, echo=FALSE, fig.width=8, fig.height=4}
-# We can reuse the x_neg_n_vals from the previous chunk
-x_neg_n_vals <- sapply(df_eo$n, function(n_val) {
-  if (-n_val %in% df_eo$n) {
-    df_eo$x[df_eo$n == -n_val]
-  } else {
-    0
-  }
-})
-df_eo$xo <- 0.5 * (df_eo$x - x_neg_n_vals)
-
-ggplot(df_eo, aes(x=n, y=xo)) +
-  geom_segment(aes(xend=n, yend=0)) +
-  geom_point() +
-  labs(title="Odd Component xo[n]", x="n", y="Value") +
+ggplot() +
+  geom_line(data = df_cont, aes(x = Time, y = Value), color = "gray", linetype = "dashed") +
+  geom_line(data = df_aliased, aes(x = Time, y = Value), color = "blue") +
+  geom_point(data = df_bad, aes(x = Time, y = Value), color = "red", size = 3) +
+  ggtitle("Undersampling (fs < 2*fmax)") +
+  labs(subtitle = "Original 10 Hz wave (gray) appears as a 2 Hz wave (blue)") +
   theme_minimal()
 ```
+---
+---
 
+### LSI Systems
 
+---
+- **System:** A process that transforms an input signal `x(t)` into an output signal `y(t)`.
 
-## Summary of Part 2
-- **Time Shifting:** `x(t - t_0)` delays or advances a signal.
-- **Time Scaling:** `x(at)` compresses or expands a signal.
-- **Even/Odd Decomposition:** Any signal can be split into a symmetric (even) part and an anti-symmetric (odd) part.
-  - $$x_e(t) = \frac{1}{2} [x(t) + x(-t)]$$
-  - $$x_o(t) = \frac{1}{2} [x(t) - x(-t)]$$
-- These transformations are fundamental tools for signal analysis.
+---
 
-::: {.notes}
-So, in this section, we've learned how to shift, scale, and reflect signals in time. We also learned about a powerful analytical tool: decomposing a signal into its even and odd components. These operations form the basis for understanding more complex signal processing techniques.
+### LSI Systems
+---
+- **LSI System:** A system that is both **Linear** and **Shift-Invariant**.
+
+---
+
+### LSI Systems
+---
+- These properties make systems much easier to analyze.
+
+---
+
+### LSI Systems
+---
+- Most imaging systems are approximated as LSI systems.
+
+::: notes
+LSI systems are the cornerstone of this field. If we know a system is LSI, we can predict its output for any input, simply by knowing its response to a single impulse.
 :::
 
-## The Exponential Signal
-- The continuous-time exponential signal is of the form:
-  $$x(t) = Ce^{at}$$
-- `C` and `a` are, in general, complex numbers.
-- This family of signals is of paramount importance in signals and systems. They are the basic building blocks for many other signals.
+---
+### Linearity
 
-::: {.notes}
-We now turn to what is arguably the most important family of signals in this entire field: the exponential signals. The form is simple, `Ce^(at)`. But by allowing C and 'a' to be complex numbers, we unlock a rich set of behaviors that can describe a vast range of physical phenomena.
+---
+- A system is **linear** if it obeys the principle of superposition.
+
+---
+
+### Linearity
+---
+1.  **Homogeneity:** `T{a * x(t)} = a * T{x(t)}`
+    - (Scaling the input scales the output by the same amount)
+
+---
+
+### Linearity
+---
+2.  **Additivity:** `T{x1(t) + x2(t)} = T{x1(t)} + T{x2(t)}`
+    - (The response to a sum of inputs is the sum of their individual responses)
+
+::: notes
+In simple terms: if you double the input, you double the output. If you add two inputs together, the output is the sum of the outputs you would have gotten from each one separately. No surprises.
 :::
 
-## Real Exponentials
-- When `C` and `a` are real numbers.
-- If `a > 0`, the signal **grows** exponentially.
-  - Models chain reactions, population growth.
-- If `a < 0`, the signal **decays** exponentially.
-  - Models radioactive decay, RC circuit responses.
-- If `a = 0`, the signal is a **constant**.
+---
+### Shift-Invariance (or Time-Invariance)
 
-::: {.notes}
-Let's start with the simplest case where C and 'a' are real. If 'a' is positive, we get exponential growth. If 'a' is negative, we get exponential decay, a behavior we've already seen. If 'a' is zero, we just have a constant DC signal.
+---
+- A system is **shift-invariant** if a shift in the input signal causes an identical shift in the output signal.
+
+---
+
+### Shift-Invariance (or Time-Invariance)
+---
+- If `y(t) = T{x(t)}`, then `y(t - t_0) = T{x(t - t_0)}`.
+
+---
+
+### Shift-Invariance (or Time-Invariance)
+---
+- The behavior of the system does not change over time or space.
+
+::: notes
+This is a crucial assumption. It means that the rules of the system don't change depending on when or where you apply the input. An X-ray system should produce the same image of a phantom today as it did yesterday (assuming the same technique).
 :::
 
-## The "Time Constant" Concept (τ)
-- For a decaying exponential, we often write `a = -1/τ`.
-  $$x(t) = Ce^{-t/\tau}$$
-- **τ (tau)** is the **time constant**.
-- It represents the time it takes for the signal to decay to approximately 37% (`1/e`) of its initial value.
-- A **smaller τ** means **faster decay**.
-- A **larger τ** means **slower decay**.
+---
 
-::: {.notes}
-For decaying exponentials, the concept of the time constant, tau, is extremely useful. It gives us a standardized way to talk about the rate of decay. After one time constant has passed, the signal has decayed to about 37% of its starting value. A small tau means a very fast decay, while a large tau means a long, slow decay.
+### Discussion Question
+
+---
+Is the financial process of adding 5% interest to a bank account a **linear** system? Why or why not?
+
+::: notes
+Let's analyze. Let the transformation T be applying interest.
+- Homogeneity: T{a * x} = 1.05 * (a*x). And a * T{x} = a * (1.05 * x). These are equal. Homogeneity holds.
+- Additivity: T{x1 + x2} = 1.05 * (x1 + x2). And T{x1} + T{x2} = 1.05*x1 + 1.05*x2. These are equal. Additivity holds.
+- Yes, it is a linear system.
 :::
 
-## Visualizing the Time Constant
-```{python time_constant_plot, echo=FALSE}
-import numpy as np
-import matplotlib.pyplot as plt
+---
 
-t = np.linspace(0, 10, 500)
-tau_05 = 0.5
-tau_1 = 1.0
-tau_5 = 5.0
+### Convolution: The Core of LSI Systems
 
-x_05 = np.exp(-t / tau_05)
-x_1 = np.exp(-t / tau_1)
-x_5 = np.exp(-t / tau_5)
+---
+- Convolution is the mathematical operation that describes the output of an LSI system.
 
-plt.figure(figsize=(10, 5))
-plt.plot(t, x_05, label=f'τ = {tau_05} (Fastest Decay)')
-plt.plot(t, x_1, label=f'τ = {tau_1}')
-plt.plot(t, x_5, label=f'τ = {tau_5} (Slowest Decay)')
+---
 
-plt.title("The Effect of the Time Constant τ on Exponential Decay")
-plt.xlabel("Time (t)")
-plt.ylabel("Amplitude e^(-t/τ)")
-plt.grid(True)
-plt.legend()
-plt.axhline(1/np.e, color='r', linestyle='--', label='1/e ≈ 0.37')
-plt.legend()
-plt.show()
+### Convolution: The Core of LSI Systems
+---
+- Every LSI system is completely characterized by its **Impulse Response Function (IRF)**, `h(t)`.
+
+---
+
+### Convolution: The Core of LSI Systems
+---
+- The output `y(t)` is the convolution of the input `x(t)` with the system's IRF `h(t)`.
+
+::: notes
+This is the single most important concept for LSI systems. If you know the system's response to a perfect impulse (the IRF), you can calculate its response to literally any input.
+:::
+
+---
+### Convolution: The Math
+
+The convolution integral is defined as:
+
+$$
+y(t) = x(t) * h(t) = \int_{-\infty}^{\infty} x(\tau) h(t - \tau) d\tau
+$$
+
+---
+- `*` denotes the convolution operation.
+---
+- `τ` is a dummy variable of integration.
+
+::: notes
+This equation looks intimidating, but it has a very intuitive meaning. It's a "weighted average" of the input signal, where the weighting function is the system's impulse response, flipped and shifted.
+:::
+
+---
+### Convolution: The Intuition
+
+Think of `h(t)` as a "smearing" or "blurring" function. The convolution integral slides the flipped `h(-τ)` along the input `x(τ)` and, at each position `t`, calculates the overlapping area.
+
+---
+
+### Convolution: The Intuition
+---
+1.  **Flip:** Take the impulse response `h(τ)` and flip it to get `h(-τ)`.
+---
+2.  **Shift:** Shift it by `t`.
+
+---
+
+### Convolution: The Intuition
+---
+3.  **Multiply:** Multiply the input `x(τ)` by the shifted, flipped `h(t - τ)`.
+---
+4.  **Integrate:** Calculate the area under the product. This area is the value of the output `y(t)` at that specific `t`.
+
+::: notes
+This "flip, shift, multiply, integrate" process is the mechanical-graphical way to understand convolution. We will visualize this process to make it clearer.
+:::
+
+---
+
+### Convolution: Graphical Example Step 1
+
+---
+- We start with an input signal `x(t)` (a Rect function) and an impulse response `h(t)` (a triangle function).
+
+---
+```{r conv_viz_setup, echo=FALSE}
+x_func <- function(t) ifelse(t >= 0 & t <= 2, 1, 0)
+h_func <- function(t) ifelse(t >= 0 & t <= 1, t, ifelse(t > 1 & t <= 2, 2 - t, 0))
+t_viz <- seq(-1, 5, length.out=1000)
+df_x <- data.frame(t=t_viz, val=x_func(t_viz), type="x(t)")
+df_h <- data.frame(t=t_viz, val=h_func(t_viz), type="h(t)")
+
+ggplot() +
+  geom_line(data=df_x, aes(x=t, y=val, color=type)) +
+  geom_line(data=df_h, aes(x=t, y=val, color=type)) +
+  ggtitle("Input Signal and Impulse Response") + theme_minimal()
 ```
+---
+---
 
+### Convolution: Graphical Example Step 2
 
-::: {.notes}
-This plot shows three decaying exponentials with different time constants. The blue curve has the smallest tau, and you can see it decays most quickly. The green curve has the largest tau and decays very slowly. The red dashed line shows the 1/e level, so you can see where each curve crosses that line at `t = tau`.
-:::
+---
+- We "flip" the impulse response to get `h(-τ)`.
+---
+- The integral is `y(t) = ∫ x(τ) h(t - τ) dτ`. We plot for a specific time `t`, say `t=0.5`.
 
-## The Complex Exponential: `e^{j\omega_0 t}`
-- Now, let `a` be purely imaginary: `a = j\omega_0`.
-  $$x(t) = e^{j\omega_0 t}$$
-- Using **Euler's Relation**, we can decompose this into real sinusoidal components:
-  $$e^{j\omega_0 t} = \cos(\omega_0 t) + j\sin(\omega_0 t)$$
-- This signal is **periodic** with fundamental period `T_0 = 2\pi / |\omega_0|`.
+---
+```{r conv_viz_flip, echo=FALSE}
+t_val <- 0.5
+h_flipped_shifted <- function(tau) h_func(t_val - tau)
+df_h_flip <- data.frame(t=t_viz, val=h_flipped_shifted(t_viz), type=paste0("h(",t_val,"-τ)"))
+df_prod <- data.frame(t=t_viz, val=x_func(t_viz) * h_flipped_shifted(t_viz), type="product")
 
-::: {.notes}
-The magic happens when we let the exponent 'a' be purely imaginary. The signal `e^(j*omega*t)` is called a complex exponential. Euler's relation tells us that this signal is actually composed of a real part, which is a cosine, and an imaginary part, which is a sine. This signal is fundamentally periodic.
-:::
-
-## Why is `e^{j\omega_0 t}` Important?
-- It is the mathematical basis for Fourier analysis.
-- It represents signals that oscillate at a single frequency, `\omega_0`.
-- The real and imaginary parts are sinusoids, which are fundamental to describing oscillations in nature (e.g., pendulums, AC circuits, sound waves).
-
-::: {.notes}
-Why do we care so much about this signal? Because it is the atom of oscillation. It represents a pure, single frequency. The theory of Fourier analysis, which we will study in depth, is built on the idea that we can represent *any* periodic signal as a sum of these complex exponentials. They are the fundamental building blocks of periodic phenomena.
-:::
-
-## Visualizing `e^{j\omega_0 t}`: The Corkscrew
-To truly understand the complex exponential, we can visualize it in 3D. The axes are Time, the Real part, and the Imaginary part. The signal traces out a corkscrew or helix shape as time progresses.
-
-::: {.notes}
-It can be hard to visualize a complex-valued signal. One of the best ways is to plot it in three dimensions. We let one axis be time, one be the real part (`cos(t)`), and the third be the imaginary part (`sin(t)`). When you do this, the signal traces out a beautiful helix, like a corkscrew, advancing in time.
-:::
-
-## 3D Corkscrew Plot
-::: {.notes}
-Here is the 3D plot. You can see the helical path. The projection of this helix onto the Time-Real plane is a cosine wave. The projection onto the Time-Imaginary plane is a sine wave. This visual confirms the relationship in Euler's formula.
-:::
-
-```{r 3d_plot, echo=FALSE}
-t <- seq(0, 4*pi, length.out=200)
-df_3d <- data.frame(
-  Time = t,
-  Real = cos(t),
-  Imag = sin(t)
-)
-
-plot_ly(df_3d, x = ~Time, y = ~Real, z = ~Imag, type = 'scatter3d', mode = 'lines',
-        line = list(width = 4, color = ~Time, colorscale = 'Viridis')) %>%
-  layout(title = "The Corkscrew of e^(jt)")
+ggplot() +
+  geom_line(data=df_x, aes(x=t, y=val, color=type)) +
+  geom_line(data=df_h_flip, aes(x=t, y=val, color=type)) +
+  geom_area(data=df_prod, aes(x=t, y=val), fill="purple", alpha=0.5) +
+  ggtitle("Flipping, Shifting, and Multiplying") + theme_minimal()
 ```
+---
+---
+- The purple area is the product `x(τ)h(t-τ)`. The integral of this area is the value of the convolution `y(t)` at `t=0.5`.
+---
+### Convolution Example: Denoising Code
 
+Let's convolve a noisy signal with a simple averaging kernel (a rect function) to smooth it out.
 
+---
+```{r convolution_code, echo=TRUE}
+# 1. Create a noisy signal
+t_conv <- seq(0, 10, length.out = 500)
+signal <- sin(t_conv) + 0.1 * cos(t_conv * 20) # Base signal + high-freq noise
+noise <- rnorm(500, mean = 0, sd = 0.2)
+noisy_signal <- signal + noise
 
-## Discrete-Time Periodicity
-- The discrete-time complex exponential is `x[n] = e^{j\omega_0 n}`.
-- Unlike the CT case, this signal is **not** periodic for all values of `\omega_0`.
-- For `x[n]` to be periodic with period `N`, we require:
-  $$e^{j\omega_0 (n+N)} = e^{j\omega_0 n}$$
-- This implies that `\omega_0 N` must be an integer multiple of `2\pi`.
-  $$\frac{\omega_0}{2\pi} = \frac{m}{N}$$
-- Periodicity only holds if the frequency `\omega_0 / (2\pi)` is a **rational number**.
+df_noisy <- data.frame(Time = t_conv, Value = noisy_signal, Type = "Noisy")
 
-::: {.notes}
-Now let's consider the discrete-time version, `e^(j*omega*n)`. And here we find a major difference from the continuous-time case. A discrete-time exponential is only periodic if its frequency is a rational number. This is a subtle but critical point.
-:::
+# 2. Perform convolution in the discrete domain (moving average)
+# R's 'filter' function is a way to do 1D convolution
+kernel <- rep(1/11, 11) # A simple 11-point averaging kernel
+smoothed_signal <- stats::filter(noisy_signal, kernel, sides = 2)
 
-## The "Aliasing" Trap in Discrete Time
-- Another key difference: In discrete time, frequencies separated by `2\pi` are identical!
-  $$e^{j(\omega_0 + 2\pi)n} = e^{j\omega_0 n} e^{j2\pi n} = e^{j\omega_0 n} \times 1$$
-- This means that a high frequency can look exactly like a low frequency after sampling. This phenomenon is called **aliasing**.
-- All unique frequencies for DT signals exist in an interval of `2\pi`, e.g., `[0, 2\pi)` or `[-\pi, \pi)`.
+df_smooth <- data.frame(Time = t_conv, Value = smoothed_signal, Type = "Smoothed")
 
-::: {.notes}
-Here's another strange and important property of discrete-time signals. Frequencies that are `2*pi` apart are indistinguishable. Adding `2*pi` to the frequency of a discrete exponential gives you back the exact same sequence. This leads to aliasing, where a high-frequency continuous signal, once sampled, can impersonate a lower-frequency signal. This is a major concern in digital signal processing.
-:::
-
-## Visualizing Aliasing
-Let's plot two different frequencies: `\omega_1 = \pi/4` and `\omega_2 = 9\pi/4`.
-Note that `\omega_2 = \omega_1 + 2\pi`.
-
-::: {.notes}
-This plot is the proof. The solid blue line is the low-frequency cosine. The dashed red line is the high-frequency cosine. But look at the sample points—the blue circles and the red hollow circles. They land on the exact same values. For the discrete-time system, these two vastly different continuous signals are completely indistinguishable.
-:::
-
-```{r aliasing_plot, echo=FALSE, fig.width=8, fig.height=4}
-n <- 0:15
-w1 <- pi/4
-w2 <- 9*pi/4
-df_alias <- data.frame(
-  n = n,
-  y1 = cos(w1 * n),
-  y2 = cos(w2 * n)
-)
-
-# Continuous underlying waves
-t <- seq(0, 15, length.out=500)
-df_cont_alias <- data.frame(
-  t = t,
-  y1_cont = cos(w1 * t),
-  y2_cont = cos(w2 * t)
-)
-
-ggplot(df_cont_alias, aes(x=t)) +
-  geom_line(aes(y=y1_cont), color="lightblue") +
-  geom_line(aes(y=y2_cont), color="lightcoral", linetype="dashed") +
-  geom_point(data=df_alias, aes(x=n, y=y1), color="blue", size=3, shape=16) +
-  geom_point(data=df_alias, aes(x=n, y=y2), color="red", size=3, shape=1) +
-  labs(title="Aliasing: cos(πn/4) and cos(9πn/4)",
-       subtitle="Blue (solid) is ω=π/4. Red (dashed) is ω=9π/4. The sample points are identical.",
-       x="n", y="Value") +
-  theme_minimal()
-
+# Combine for plotting
+df_conv <- rbind(df_noisy, df_smooth)
 ```
-
-
-
-## Summary of Part 3
-- The exponential `Ce^{at}` is a fundamental signal family.
-- **Real exponentials** (`a` is real) model growth and decay, governed by the **time constant τ**.
-- **Complex exponentials** (`a` is imaginary) model pure oscillations (sinusoids).
-  - Visualized as a 3D corkscrew.
-- **Discrete-time exponentials** have unique properties:
-  - Only periodic if frequency is a rational number.
-  - Frequencies separated by `2\pi` are identical (**aliasing**).
-
-::: {.notes}
-In this section, we've introduced the exponential signal family. We've seen how real exponents lead to growth and decay, and how pure imaginary exponents lead to perpetual oscillation. We also highlighted the crucial and sometimes counter-intuitive properties of their discrete-time counterparts, including the conditions for periodicity and the concept of aliasing.
+---
+::: notes
+Here we create a signal with some high-frequency noise. Then we define a simple averaging kernel. The `filter` function in R performs a convolution, effectively applying a moving average to our noisy signal.
 :::
 
-## The Unit Impulse and Unit Step
-- Singularity functions are an important class of idealized signals.
-- They are used as basic building blocks to construct more complex signals.
-- The two key singularity functions are:
-  1. The **Unit Impulse** (`\delta`)
-  2. The **Unit Step** (`u`)
+---
+### Convolution Example: Denoising Visualization
 
-::: {.notes}
-We now move on to a set of idealized signals called singularity functions. They are not something you can perfectly create in a lab, but they are incredibly powerful mathematical tools. They serve as the fundamental building blocks for representing other signals and analyzing systems. The two most important are the unit impulse and the unit step.
-:::
-
-## The Discrete-Time Unit Impulse and Step
-- **Unit Impulse `\delta[n]`** (also called the unit sample):
-  $$\delta[n] = \begin{cases} 1 & n=0 \\ 0 & n \neq 0 \end{cases}$$
-- **Unit Step `u[n]`**:
-  $$u[n] = \begin{cases} 1 & n \ge 0 \\ 0 & n < 0 \end{cases}$$
-
-::: {.notes}
-In discrete time, these functions are quite simple. The unit impulse, delta[n], is a signal that is 1 at n=0 and zero everywhere else. It's a single, instantaneous blip. The unit step, u[n], is a signal that is zero for all negative time, and then switches on to 1 at n=0 and stays there forever.
-:::
-
-## Relationship between `\delta[n]` and `u[n]`
-- The unit impulse is the **first difference** of the unit step:
-  $$\delta[n] = u[n] - u[n-1]$$
-- The unit step is the **running sum** of the unit impulse:
-  $$u[n] = \sum_{k=-\infty}^{n} \delta[k]$$
-
-This relationship is crucial for system analysis.
-
-::: {.notes}
-There is a fundamental relationship between the impulse and the step. The impulse is the difference between a step and a slightly delayed step—it captures the moment of change. Conversely, the step is the running sum of an impulse. You start with nothing, add the impulse at n=0, and you get the step function.
-:::
-
-## Visualizing the "Running Sum" (1/3): `\delta[n]`
-The starting point: a single impulse at `n=0`.
-
-::: {.notes}
-Let's build the step function from impulses. We start with a single impulse at the origin, `delta[n]`.
-:::
-
-```{r running_sum1, echo=FALSE, fig.width=8, fig.height=4}
-df_delta <- data.frame(n=-5:5, y=c(0,0,0,0,0,1,0,0,0,0,0))
-ggplot(df_delta, aes(x=n, y=y)) +
-  geom_segment(aes(xend=n, yend=0)) +
-  geom_point() +
-  labs(title="Signal: δ[n]", x="n", y="Value") + theme_minimal() + ylim(0,1.2)
+---
+```{r convolution_plot, echo=FALSE, fig.cap="A noisy signal before and after convolution with a smoothing kernel."}
+ggplot(df_conv, aes(x = Time, y = Value, color = Type)) +
+  geom_line(size = 1) +
+  ggtitle("Signal Denoising via Convolution") +
+  theme_minimal() +
+  scale_color_manual(values = c("Noisy" = "gray", "Smoothed" = "red"))
 ```
-
-
-
-## Visualizing the "Running Sum" (2/3): `\delta[n] + \delta[n-1]`
-Adding a delayed impulse. The running sum is accumulating.
-
-::: {.notes}
-Now, we add the next impulse in the sequence, `delta[n-1]`. The running sum now has a value of 1 at n=0 and n=1. We are building the step.
+---
+::: notes
+The result is clear. The red "Smoothed" signal is a less noisy version of the original gray signal. The convolution has averaged out the rapid fluctuations, an example of low-pass filtering.
 :::
 
-```{r running_sum2, echo=FALSE, fig.width=8, fig.height=4}
-df_deltas <- data.frame(n=-5:5, y=c(0,0,0,0,0,1,1,0,0,0,0))
-ggplot(df_deltas, aes(x=n, y=y)) +
-  geom_segment(aes(xend=n, yend=0)) +
-  geom_point() +
-  labs(title="Running Sum up to n=1: Σ δ[k]", x="n", y="Value") + theme_minimal() + ylim(0,1.2)
+---
+### Fourier Analysis
+
+---
+- A revolutionary idea: **Any signal can be represented as a sum of sines and cosines.**
+---
+- The **Fourier Transform (FT)** is the mathematical tool that decomposes a signal from its "time domain" into its constituent frequencies in the "frequency domain."
+
+---
+
+::: notes
+Fourier analysis is like taking a musical chord and figuring out the individual notes that make it up. It's one of the most powerful tools in all of science and engineering.
+:::
+
+---
+### The Fourier Transform: Math
+
+The 1D Forward Fourier Transform:
+
+$$
+X(k) = \mathcal{F}\{x(t)\} = \int_{-\infty}^{\infty} x(t) e^{-i 2\pi k t} dt
+$$
+
+---
+- `x(t)`: The signal in the time domain.
+---
+- `X(k)`: The signal in the frequency domain.
+---
+- `k`: Represents frequency.
+
+::: notes
+This is the equation that takes us from the time domain to the frequency domain. The `exp(-i*2*pi*k*t)` term is Euler's formula, which represents sines and cosines. This integral measures "how much" of each frequency `k` is present in the signal `x(t)`.
+:::
+
+---
+### The Fourier Transform: Variable Breakdown
+
+$$ X(k) = \int_{-\infty}^{\infty} x(t) e^{-i 2\pi k t} dt $$
+
+---
+- **`X(k)`**: The output. A complex-valued function representing the frequency spectrum. Its magnitude tells you the amplitude of each frequency, and its phase tells you the alignment.
+
+---
+
+### The Fourier Transform: Variable Breakdown
+---
+- **`x(t)`**: The input signal as a function of time (or space).
+---
+- **`k`**: The frequency variable.
+
+---
+
+### The Fourier Transform: Variable Breakdown
+---
+- **`t`**: The time variable (or space).
+---
+- **`i`**: The imaginary unit, `sqrt(-1)`.
+
+::: notes
+The output `X(k)` is complex, which can be tricky. For visualization, we almost always look at the magnitude, `|X(k)|`, which is called the amplitude spectrum.
+:::
+
+---
+### The Fourier Transform: Intuition
+
+The FT is a "frequency machine."
+
+---
+- You put a time-domain signal `x(t)` in.
+---
+- It gives you a frequency-domain spectrum `X(k)` out.
+---
+- A peak in `X(k)` at `k=k0` means the original signal `x(t)` contained a strong sinusoidal component at the frequency `k0`.
+
+::: notes
+Think of it as a prism for signals. A prism takes in white light (a complex signal) and splits it into its constituent colors (the frequency spectrum). The Fourier Transform does the same for any signal.
+:::
+
+---
+### FT Example: Sine Wave Code
+
+---
+```{r ft_sine_code, echo=TRUE}
+# Create a simple sine wave
+fs <- 100 # Sampling frequency
+t_ft <- seq(0, 1, length.out = fs)
+freq <- 5 # 5 Hz
+x_sine <- sin(2 * pi * freq * t_ft)
+
+# Calculate the Fast Fourier Transform (FFT)
+fft_result <- fft(x_sine)
+fft_magnitude <- Mod(fft_result)
+
+# Create frequency axis for plotting
+freq_axis <- seq(0, fs, length.out = fs)
+
+df_fft <- data.frame(Frequency = freq_axis, Magnitude = fft_magnitude)
 ```
-
-
-
-## Visualizing the "Running Sum" (3/3): `u[n]`
-The full running sum, `u[n] = \sum_{k=0}^{n} \delta[n-k]`, results in the unit step.
-
-::: {.notes}
-As we continue this process for all positive time, the running sum fills in, and we get the unit step function. This shows that the step is composed of a superposition of delayed impulses.
+---
+::: notes
+Here we create a pure 5 Hz sine wave. We then use R's `fft` function, which is a fast algorithm for computing the Discrete Fourier Transform. We calculate the magnitude for visualization.
 :::
 
-```{r running_sum3, echo=FALSE, fig.width=8, fig.height=4}
-df_u <- data.frame(n=-5:5, y=c(0,0,0,0,0,1,1,1,1,1,1))
-ggplot(df_u, aes(x=n, y=y)) +
-  geom_segment(aes(xend=n, yend=0)) +
-  geom_point() +
-  labs(title="The Full Running Sum: u[n]", x="n", y="Value") + theme_minimal() + ylim(0,1.2)
+---
+### FT Example: Sine Wave Visualization
+
+---
+```{r ft_sine_plot, echo=FALSE, fig.cap="Time domain and Frequency domain of a 5 Hz sine wave."}
+p_time <- ggplot(data.frame(Time=t_ft, Amplitude=x_sine), aes(x=Time, y=Amplitude)) +
+  geom_line() + ggtitle("Time Domain: 5 Hz Sine Wave")
+
+# Plot only the first half of the spectrum (due to symmetry)
+p_freq <- ggplot(df_fft[1:(fs/2), ], aes(x = Frequency, y = Magnitude)) +
+  geom_line() +
+  ggtitle("Frequency Domain (Magnitude)") +
+  labs(x = "Frequency (Hz)")
+
+p_time + p_freq
 ```
-
-
-
-## The Continuous-Time Unit Impulse `\delta(t)`
-- The continuous-time impulse `\delta(t)` is more abstract.
-- It is defined by its properties, not its value. It is NOT infinity at t=0.
-- It is viewed as the limit of a rectangular pulse with **area = 1** as the width approaches zero.
-  - Width `\Delta`, Height `1/\Delta`.
-- Key Property: **The Sifting Property**
-  $$\int_{-\infty}^{\infty} x(t)\delta(t-t_0)dt = x(t_0)$$
-
-::: {.notes}
-The continuous-time impulse is a more challenging concept. You can't just define its value at t=0. Instead, we define it as a limiting process. Imagine a rectangle of width Delta and height 1/Delta. Its area is always 1. The unit impulse is what you get as you squeeze the width to zero. The most important property is "sifting"—it samples the value of another function at a specific point.
+---
+::: notes
+On the left is our signal. On the right is its Fourier spectrum. Notice the strong, sharp peak at exactly 5 Hz, just as we expected. The FT correctly identified the frequency content of the signal. The second peak near 95Hz is its alias due to Nyquist theorem.
 :::
 
-## The "Rectangular Approximation" (1/3): `\Delta = 0.5`
-A pulse of width 0.5 and height 2. Area = 1.
+---
+### The 2D Fourier Transform
 
-```{python rect_approx1, echo=FALSE}
-import numpy as np
-import matplotlib.pyplot as plt
+The concept extends to 2D signals, like images.
 
-def rect_pulse(t, delta):
-    return (1/delta) * ((t >= -delta/2) & (t <= delta/2))
+$$
+F(k_x, k_y) = \int_{-\infty}^{\infty}\int_{-\infty}^{\infty} f(x,y) e^{-i 2\pi (k_x x + k_y y)} dx dy
+$$
 
-t = np.linspace(-1, 1, 500)
-plt.figure(figsize=(8,4))
-plt.plot(t, rect_pulse(t, 0.5))
-plt.title("Rectangular Approximation of δ(t): Δ = 0.5")
-plt.xlabel("Time (t)")
-plt.ylabel("Amplitude")
-plt.ylim(0, 110)
-plt.grid(True)
-plt.show()
+---
+- `f(x,y)`: The 2D image.
+---
+- `F(kx, ky)`: The 2D frequency spectrum.
 
-```
+---
 
+### The 2D Fourier Transform
+---
+- `kx, ky`: Spatial frequencies in the x and y directions.
 
-::: {.notes}
-Let's visualize this limiting process. Here's our pulse with a width of 0.5. To maintain unit area, its height must be 2.
+::: notes
+Instead of temporal frequency, we now have spatial frequencies. `kx` represents how fast the image intensity changes in the x-direction, and `ky` for the y-direction. High spatial frequencies correspond to sharp edges, and low frequencies correspond to smooth areas.
 :::
 
-## The "Rectangular Approximation" (2/3): `\Delta = 0.1`
-The pulse gets narrower and taller, but the area remains 1.
+---
+### 2D FT Example: 2D Rect Code
 
-```{python rect_approx2, echo=FALSE}
-t = np.linspace(-1, 1, 500)
-plt.figure(figsize=(8,4))
-plt.plot(t, rect_pulse(t, 0.1))
-plt.title("Rectangular Approximation of δ(t): Δ = 0.1")
-plt.xlabel("Time (t)")
-plt.ylabel("Amplitude")
-plt.ylim(0, 110)
-plt.grid(True)
-plt.show()
-```
+---
+```{r 2d_ft_code, echo=TRUE}
+# Create a 2D Rect function (a white square on a black background)
+matrix_size <- 128
+img_matrix <- matrix(0, nrow = matrix_size, ncol = matrix_size)
+center <- matrix_size / 2
+width <- 16
+img_matrix[(center - width/2):(center + width/2), (center - width/2):(center + width/2)] <- 1
 
+# Calculate the 2D FFT
+fft_2d_result <- fft(img_matrix)
 
-::: {.notes}
-Now we shrink the width to 0.1. The height must increase to 10 to keep the area equal to 1.
-:::
+# For visualization, we want to see the magnitude and shift the zero-frequency component to the center
+fft_shift <- function(mat) {
+  # Swaps quadrants of a matrix
+  rows <- nrow(mat)
+  cols <- ncol(mat)
+  r_mid <- floor(rows / 2)
+  c_mid <- floor(cols / 2)
 
-## The "Rectangular Approximation" (3/3): `\Delta = 0.01`
-As `\Delta \to 0`, the pulse approaches an impulse.
+  quad1 <- mat[1:r_mid, 1:c_mid]
+  quad2 <- mat[1:r_mid, (c_mid + 1):cols]
+  quad3 <- mat[(r_mid + 1):rows, 1:c_mid]
+  quad4 <- mat[(r_mid + 1):rows, (c_mid + 1):cols]
 
-```{python rect_approx3, echo=FALSE}
-t = np.linspace(-1, 1, 500)
-plt.figure(figsize=(8,4))
-plt.plot(t, rect_pulse(t, 0.01))
-plt.title("Rectangular Approximation of δ(t): Δ = 0.01")
-plt.xlabel("Time (t)")
-plt.ylabel("Amplitude")
-plt.ylim(0, 110)
-plt.grid(True)
-plt.show()
-```
-
-
-::: {.notes}
-Finally, with a width of 0.01, the height shoots up to 100. In the limit, as the width goes to zero, we get the idealized unit impulse: a function with zero width, infinite height, but a precisely defined area of 1.
-:::
-
-## Summary of Part 4
-- **Singularity functions** (`\delta` and `u`) are idealized signals used as building blocks.
-- **Discrete Time:**
-  - `\delta[n]` is a single non-zero point.
-  - `u[n]` is the running sum of `\delta[n]`.
-- **Continuous Time:**
-  - `\delta(t)` is defined as the limit of a unit-area pulse.
-  - Its most important characteristic is the **sifting property**.
-
-::: {.notes}
-To recap, singularity functions like the impulse and the step are fundamental tools. In discrete time, they are simple to define and visualize. In continuous time, the impulse is more abstract, defined by its sifting property and as the limit of a pulse of unit area.
-:::
-
-## What is a System?
-- A system is a process that transforms input signals into output signals.
-- We represent it as:
-  - `y(t) = T\{x(t)\}`
-  - `y[n] = T\{x[n]\}`
-- Examples:
-  - An audio amplifier (input: weak audio signal, output: strong audio signal).
-  - A cruise control system (input: desired speed, output: engine throttle).
-  - An image filter (input: original image, output: enhanced image).
-
-::: {.notes}
-Finally, we turn our attention from signals to systems. A system is anything that takes an input signal and produces an output signal. It's a transformation. We'll spend the rest of this course studying different kinds of systems, but first, we need a language to describe their properties.
-:::
-
-## System Properties
-We can classify systems based on several key properties:
-1. Memory
-2. Invertibility
-3. Causality
-4. Stability
-5. **Linearity**
-6. **Time-Invariance**
-
-The last two, Linearity and Time-Invariance, are the most important for this course.
-
-::: {.notes}
-We classify systems based on their fundamental properties. Does it have memory? Can its effects be undone? Does it react only to past events? Does it produce bounded outputs for bounded inputs? And most critically for our purposes: is it linear, and is it time-invariant?
-:::
-
-## Linearity
-A system is **linear** if it possesses the property of **superposition**.
-1. **Additivity:** `T\{x_1(t) + x_2(t)\} = T\{x_1(t)\} + T\{x_2(t)\}`
-2. **Homogeneity (Scaling):** `T\{ax(t)\} = aT\{x(t)\}`
-
-In words: The response to a weighted sum of inputs is the weighted sum of the individual responses.
-
-::: {.notes}
-Linearity is a crucial property. It means the system obeys superposition. If you put the sum of two signals in, you get the sum of their individual outputs out. If you scale the input by a factor, the output is scaled by the same factor. This principle dramatically simplifies the analysis of complex systems.
-:::
-
-## Visual Proof of a Nonlinear System
-Let's test the system `y = T\{x\} = x^2` for linearity. We will check if `T\{x_1+x_2\} = T\{x_1\}+T\{x_2\}`.
-
-```{python linearity_test, echo=FALSE}
-import numpy as np
-import matplotlib.pyplot as plt
-
-t = np.linspace(0, 2*np.pi, 100)
-x1 = np.sin(t)
-x2 = 0.5 * np.cos(2*t)
-
-# T(x1 + x2)
-y_sum_first = (x1 + x2)**2
-
-# T(x1) + T(x2)
-y_sum_after = x1**2 + x2**2
-
-plt.figure(figsize=(10, 5))
-plt.plot(t, y_sum_first, label='T(x1 + x2) = (x1+x2)^2', lw=2)
-plt.plot(t, y_sum_after, label='T(x1) + T(x2) = x1^2 + x2^2', linestyle='--')
-plt.title("Testing Linearity for y = x^2")
-plt.xlabel("Time (t)")
-plt.ylabel("Output")
-plt.grid(True)
-plt.legend()
-plt.show()
-```
-
-
-::: {.notes}
-A visual test can be very convincing. Here we test the system `y = x^2`. We take two inputs, x1 and x2. The solid line is the output when we first add the inputs and then apply the system. The dashed line is the output when we apply the system to each input first, and then add the outputs. Because the two lines do not match, the superposition principle fails. This system is not linear.
-:::
-
-## Time-Invariance
-- A system is **time-invariant** if its behavior does not change over time.
-- If `y(t) = T\{x(t)\}`, then a time-invariant system must satisfy:
-  `y(t - t_0) = T\{x(t - t_0)\}`
-- In words: If you shift the input in time, the output is the exact same shape, just shifted by the same amount. The system doesn't care *when* you apply the input.
-
-::: {.notes}
-The second critical property is time-invariance. This means the system's rules are fixed. The behavior you see today is the same behavior you would see tomorrow. If you feed a signal into your stereo today, and then feed the exact same signal in tomorrow but delayed by 24 hours, you expect to hear the exact same output, also delayed by 24 hours. That is time-invariance.
-:::
-
-## Visualizing Time-Invariance
-- Input a pulse at `t=0`, record the output.
-- Input the same pulse, but shifted to `t=5`.
-- If the system is time-invariant, the second output must be identical to the first, just shifted to start at `t=5`.
-
-::: {.notes}
-Let's see what this looks like. We have a hypothetical system that "smears" an input pulse. On the left, we input a pulse at t=0, and we get the smeared blue output. On the right, we input the same pulse but delayed to t=5. The system produces the red output. As you can see, the red output is just a shifted version of the blue one. The shape is identical. This system is time-invariant.
-:::
-
-```{r ti_viz, echo=FALSE, fig.width=10, fig.height=4}
-# Simulate a simple "smearing" system (e.g., a simple moving average)
-smear <- function(x) {
-  stats::filter(x, rep(1/5, 5), sides=2)
+  rbind(cbind(quad4, quad3), cbind(quad2, quad1))
 }
 
-t <- seq(-2, 10, length.out=500)
-# Input pulse at t=0
-x1 <- ifelse(t >= 0 & t <= 1, 1, 0)
-y1 <- smear(x1)
-# Input pulse at t=5
-x2 <- ifelse(t >= 5 & t <= 6, 1, 0)
-y2 <- smear(x2)
-
-df_ti <- data.frame(t, y1, y2)
-
-p1 <- ggplot(df_ti, aes(x=t, y=y1)) + geom_line(color="blue") +
-  labs(title="Output for Input at t=0", x="t", y="y1(t)") + theme_minimal() + xlim(-2, 10)
-p2 <- ggplot(df_ti, aes(x=t, y=y2)) + geom_line(color="red") +
-  labs(title="Output for Input at t=5", x="t", y="y2(t)") + theme_minimal() + xlim(-2, 10)
-
-p1 + p2
+fft_magnitude_2d <- log(1 + Mod(fft_shift(fft_2d_result)))
 ```
-
-
-
-## LTI Systems
-- Systems that are both **Linear** and **Time-Invariant** are called **LTI systems**.
-- This class of systems is immensely important because:
-  1. They can be analyzed in great detail with a powerful set of mathematical tools (e.g., convolution, Fourier and Laplace transforms).
-  2. Many real-world physical systems can be accurately modeled as LTI systems.
-- The rest of this course will focus heavily on LTI systems.
-
-::: {.notes}
-When a system is both linear AND time-invariant, we call it an LTI system. This is the sweet spot. LTI systems are the focus of our study because they are simple enough to be described by powerful mathematics, yet complex enough to model a huge range of important physical processes, from circuits to mechanical vibrations to communication channels.
+---
+::: notes
+We create a matrix representing a white square. We then compute its 2D FFT. A crucial step for visualization is `fft_shift`, which moves the zero-frequency component from the corner (where the algorithm places it) to the center, which is more intuitive for us to view. We also take the log to compress the dynamic range for better visibility.
 :::
 
-## Course Summary
-- We started with the fundamentals of **signals** (CT/DT, energy/power).
-- We explored signal **transformations** (shifting, scaling, even/odd).
-- We dove into the crucial **exponential signal family**.
-- We defined idealized **singularity functions** (`\delta` and `u`).
-- We finished by classifying **systems** based on their properties, identifying the importance of **LTI Systems**.
+---
+### 2D FT Example: 2D Rect Visualization
 
-Thank you.
+---
+```{r 2d_ft_plot, echo=FALSE, fig.cap="A 2D Rect (left) and its 2D Fourier Transform magnitude (right), a 2D Sinc."}
+# Need to prep data for ggplot
+library(reshape2)
+df_img <- melt(img_matrix)
+colnames(df_img) <- c("Var1", "Var2", "value")
+p_img_2d <- ggplot(df_img, aes(x = Var1, y = Var2, fill = value)) +
+  geom_raster() + scale_fill_gradient(low = "black", high = "white") +
+  ggtitle("2D Rect Function") + theme_void() + guides(fill="none")
 
-::: {.notes}
-To conclude our first chapter, we have built a solid foundation. We know what signals are and how to classify them. We can manipulate them. We have met the all-important exponential signals and the useful impulse and step functions. And finally, we have a framework for describing and classifying systems, which has led us to the most important class of all: LTI systems. Our journey from here will be to build the analytical tools to master them.
+df_fft_2d <- melt(fft_magnitude_2d)
+colnames(df_fft_2d) <- c("Var1", "Var2", "value")
+p_fft_2d <- ggplot(df_fft_2d, aes(x = Var1, y = Var2, fill = value)) +
+  geom_raster() + scale_fill_viridis_c() +
+  ggtitle("2D FT Magnitude (2D Sinc)") + theme_void() + guides(fill="none")
+
+p_img_2d + p_fft_2d
+```
+---
+::: notes
+Just as the 1D FT of a Rect is a Sinc, the 2D FT of a 2D Rect is a 2D Sinc. On the right, you can see the bright central lobe and the fainter side lobes extending in the kx and ky directions. This is a fundamental relationship in imaging.
+:::
+
+---
+### The Convolution Theorem
+
+This is one of the most powerful theorems in signal processing. It states that convolution in one domain is equivalent to multiplication in the other domain.
+
+---
+- **Convolution in Time/Space Domain <=> Multiplication in Frequency Domain**
+  `\mathcal{F}\{x(t) * h(t)\} = X(k) \cdot H(k)`
+
+---
+
+- **Multiplication in Time/Space Domain <=> Convolution in Frequency Domain**
+  `\mathcal{F}\{x(t) \cdot h(t)\} = X(k) * H(k)`
+
+::: notes
+This theorem is a huge deal. Convolution is a computationally expensive operation (that big integral). Multiplication is extremely fast for a computer. The convolution theorem allows us to replace a slow convolution with two FFTs, a single multiplication, and an inverse FFT. This is the basis for fast filtering algorithms used in every imaging modality.
+:::
+
+---
+
+### Module 1 Summary
+
+---
+- Signals can be continuous or discrete.
+---
+- We use standard functions (Rect, Sinc, Delta) as building blocks.
+---
+- LSI (Linear and Shift-Invariant) systems are predictable and easy to analyze.
+
+---
+
+### Module 1 Summary
+---
+- **Convolution** describes the output of any LSI system.
+---
+- The **Fourier Transform** moves a signal between the time and frequency domains.
+---
+- The **Convolution Theorem** provides a fast way to compute convolutions.
+
+::: notes
+We have laid the entire groundwork for the course. Make sure you are comfortable with these concepts before we move on to stochastic systems, where things get a bit less predictable.
+:::
+
+## Module 2: Stochastic Systems
+
+::: notes
+Now we move from the predictable world of deterministic signals to the unpredictable world of stochastic processes. Noise is a fundamental component of all medical images, and understanding its properties is critical to evaluating and improving image quality.
+:::
+
+---
+### Deterministic vs. Stochastic
+
+---
+- **Deterministic System:** The same input always produces the exact same output. The systems in Module 1 were all deterministic.
+---
+- **Stochastic System:** The output has some element of randomness. The output is described by probability distributions, not by a single, definite function.
+---
+- **Noise** is the primary source of stochastic behavior in medical imaging.
+
+::: notes
+In the real world, no system is truly deterministic. There's always some random fluctuation. In this module, we will learn how to characterize and quantify that randomness.
+:::
+
+---
+
+### Major Noise Types in Medical Imaging
+
+---
+- **Poisson Noise (Quantum Noise):** Arises from the discrete nature of particles (e.g., photons, radioactive decays). It's signal-dependent.
+---
+- **Gaussian Noise (Electronic Noise):** Arises from thermal fluctuations in electronic components. It's generally signal-independent.
+---
+- **Rician Noise:** Found in MRI, resulting from the combination of a real signal with Gaussian noise in two orthogonal channels.
+
+::: notes
+We will focus on Poisson and Gaussian noise as they are the most common and form the basis for understanding more complex noise models.
+:::
+
+---
+### Poisson Noise: The Math
+
+The Poisson distribution describes the probability of a given number of events occurring in a fixed interval if these events occur with a known constant mean rate.
+
+$$ P(k; \lambda) = \frac{\lambda^k e^{-\lambda}}{k!} $$
+
+---
+- `λ` (lambda) is the mean number of events.
+---
+- In imaging, `λ` is the expected number of photons.
+---
+- A key property: **The variance is equal to the mean (`σ² = λ`)**.
+
+::: notes
+This is the noise of counting statistics. If you expect to detect an average of 100 photons in a pixel, the standard deviation of that measurement will be the square root of 100, which is 10. This signal-dependent nature is a defining feature.
+:::
+
+---
+### Poisson Noise: Code Example
+
+---
+```{r poisson_code, echo=TRUE}
+# Generate data from a Poisson distribution
+mean_photons <- 25
+num_samples <- 10000
+
+# Use rpois to generate random deviates
+poisson_data <- rpois(num_samples, lambda = mean_photons)
+
+df_poisson <- data.frame(Counts = poisson_data)
+
+# Calculate sample mean and variance
+sample_mean <- mean(poisson_data)
+sample_variance <- var(poisson_data)
+```
+---
+::: notes
+We use R's `rpois` function to simulate `r num_samples` measurements from a process with a mean of `r mean_photons` photons. We then calculate the mean and variance to check if they are approximately equal, as the theory predicts.
+:::
+
+---
+### Poisson Noise: Visualization
+
+---
+```{r poisson_plot, echo=FALSE, fig.cap="Histogram of samples from a Poisson distribution."}
+ggplot(df_poisson, aes(x = Counts)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", aes(y = ..density..)) +
+  ggtitle(paste0("Poisson Distribution (λ = ", mean_photons, ")")) +
+  labs(subtitle = paste0("Sample Mean ≈ ", round(sample_mean, 2),
+                         ", Sample Variance ≈ ", round(sample_variance, 2)),
+       x = "Photon Counts", y = "Density") +
+  theme_minimal()
+```
+---
+::: notes
+As you can see, the distribution is centered around our mean of 25. The subtitle confirms the core property of Poisson noise: the sample mean is very close to the sample variance.
+:::
+
+---
+### Gaussian Noise: The Math
+
+The Gaussian (or Normal) distribution is described by its mean (`μ`) and standard deviation (`σ`).
+
+$$ f(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{ - \frac{ (x - \mu)^2 }{ 2\sigma^2 } } $$
+
+---
+- This is the classic "bell curve."
+---
+- In contrast to Poisson noise, the variance (`σ²`) is independent of the mean signal (`μ`).
+
+::: notes
+This noise is additive and constant. It comes from the electronics in the imaging chain. Whether the signal is bright or dark, the amount of electronic noise added is generally the same.
+:::
+
+---
+### Gaussian Noise: Code Example
+
+---
+```{r gaussian_code, echo=TRUE}
+# Generate data from a Gaussian distribution
+mean_signal <- 50
+noise_std_dev <- 10
+num_samples <- 10000
+
+# Use rnorm to generate random deviates
+gaussian_data <- rnorm(num_samples, mean = mean_signal, sd = noise_std_dev)
+
+df_gaussian <- data.frame(Value = gaussian_data)
+```
+---
+::: notes
+Here we use `rnorm` to simulate `r num_samples` measurements. The key difference is that we explicitly define both the mean and the standard deviation, as they are independent parameters.
+:::
+
+---
+### Gaussian Noise: Visualization
+
+---
+```{r gaussian_plot, echo=FALSE, fig.cap="Histogram of samples from a Gaussian distribution."}
+ggplot(df_gaussian, aes(x = Value)) +
+  geom_histogram(bins = 50, fill = "salmon", color = "black", aes(y = ..density..)) +
+  stat_function(fun = dnorm, args = list(mean = mean_signal, sd = noise_std_dev), color = "blue", size = 1) +
+  ggtitle(paste0("Gaussian Distribution (μ = ", mean_signal, ", σ = ", noise_std_dev, ")")) +
+  theme_minimal()
+```
+---
+::: notes
+The histogram perfectly follows the classic bell curve shape, overlaid in blue. This is characteristic of electronic noise in detectors.
+:::
+
+---
+
+### Noise Appearance: Poisson vs. Gaussian
+
+---
+- **Poisson noise is signal-dependent:** Brighter areas are noisier.
+---
+- **Gaussian noise is signal-independent:** Noise is constant everywhere.
+
+---
+
+### Noise Appearance: Visualization Code
+
+---
+```{r noise_appearance_code, echo=TRUE}
+# Create a signal that varies in brightness (a ramp)
+t_ramp <- 1:256
+signal_ramp <- t_ramp
+
+# Add Poisson noise (variance = mean)
+noise_poisson <- rpois(256, lambda = signal_ramp)
+
+# Add Gaussian noise (constant variance)
+noise_gaussian <- rnorm(256, mean = signal_ramp, sd = 10)
+
+df_ramp_p <- data.frame(Time = t_ramp, Value = noise_poisson, Type = "Poisson")
+df_ramp_g <- data.frame(Time = t_ramp, Value = noise_gaussian, Type = "Gaussian")
+```
+---
+---
+
+### Noise Appearance: Visualization Plot
+
+---
+```{r noise_appearance_plot, echo=FALSE, fig.cap="Comparison of Poisson and Gaussian noise on a ramp signal."}
+p_p <- ggplot(df_ramp_p, aes(x=Time, y=Value)) + geom_line() + ggtitle("Poisson Noise") + ylim(0,300)
+p_g <- ggplot(df_ramp_g, aes(x=Time, y=Value)) + geom_line() + ggtitle("Gaussian Noise") + ylim(0,300)
+p_p + p_g
+```
+---
+---
+- Notice how the Poisson noise gets much larger as the signal gets brighter (right side of the plot), while the Gaussian noise has a constant "fuzziness" across the entire signal.
+---
+### Signal-to-Noise Ratio (SNR)
+
+SNR is the most fundamental metric of image quality. It quantifies how strong the signal is relative to the background noise.
+
+$$ \text{SNR} = \frac{\text{Mean Signal}}{\text{Standard Deviation of Noise}} = \frac{\mu}{\sigma} $$
+
+---
+- A higher SNR means a cleaner, more reliable measurement.
+
+::: notes
+SNR is the currency of imaging. We are constantly trading other parameters—like scan time or radiation dose—to improve SNR. An SNR of 1 means the noise is as strong as the signal, making the signal very hard to detect.
+:::
+
+---
+### Contrast-to-Noise Ratio (CNR)
+
+CNR measures the ability to distinguish between two different regions or tissues, taking into account the noise level.
+
+$$ \text{CNR} = \frac{|\text{Mean}_A - \text{Mean}_B|}{\sqrt{\sigma_A^2 + \sigma_B^2}} $$
+
+---
+- `A` and `B` are two regions of interest.
+---
+- High CNR is essential for detecting pathology. An object can have high contrast, but if the noise is too high, CNR will be low and it will be invisible.
+
+::: notes
+While SNR tells you about the quality in one area, CNR tells you about your ability to tell two areas apart. This is often more clinically relevant. Can I distinguish this tumor from the surrounding healthy tissue? That is a CNR question.
+:::
+
+---
+### CNR: Visualization Code
+
+---
+```{r cnr_code, echo=TRUE}
+# Create two regions with different means but the same noise
+N_pixels <- 256 * 256
+img <- matrix(rnorm(N_pixels, mean = 50, sd = 20), nrow=256, ncol=256)
+
+# Create a signal region (A) and a background region (B)
+mean_A <- 60
+mean_B <- 50
+img[100:156, 100:156] <- rnorm(57*57, mean = mean_A, sd = 20)
+```
+---
+::: notes
+We create a noisy background image. Then, we insert a square patch in the middle that has a slightly higher mean value but the same level of noise. We will now visualize this to see if we can detect the square.
+:::
+
+---
+### CNR: Visualization Plot
+
+---
+```{r cnr_plot, echo=FALSE, fig.cap="Image with a square of higher signal. Its detectability is determined by CNR."}
+df_cnr_img <- melt(img)
+colnames(df_cnr_img) <- c("Var1", "Var2", "value")
+ggplot(df_cnr_img, aes(x=Var1, y=Var2, fill=value)) +
+  geom_raster() +
+  scale_fill_viridis_c() +
+  theme_void() +
+  ggtitle(paste0("Can you see the square? (CNR ≈ ", round((mean_A - mean_B)/20, 2), ")")) +
+  guides(fill="none")
+```
+---
+::: notes
+Whether or not you can easily see the square depends on the CNR. If we increase the difference in means or decrease the noise, the square becomes more obvious. This leads us to our next topic...
+:::
+
+---
+### The Rose Criterion
+
+How much CNR do you need? The Rose Criterion provides a rule of thumb.
+
+---
+- It states that a CNR (or SNR for a simple detection task) of approximately **5** is required for a human observer to reliably detect a signal against a noisy background.
+
+---
+- This is not a hard physical law, but a widely accepted psychophysical guideline.
+
+::: notes
+This is a very practical rule. If your calculated CNR for a lesion is only 1 or 2, a radiologist is very likely to miss it. We need to design our imaging systems and protocols to ensure the CNR for the targets of interest exceeds this threshold of 5.
+:::
+
+---
+
+### Rose Criterion: Visualization
+
+---
+- Let's visualize the same object at different CNR levels.
+---
+- The object is a faint circle in the center of the image.
+
+---
+
+### Rose Criterion: Visualization Code
+
+---
+```{r rose_criterion_code, echo=TRUE}
+create_cnr_image <- function(cnr) {
+  bg_mean <- 100
+  noise_sd <- 20
+  signal_mean <- bg_mean + cnr * noise_sd
+
+  img <- matrix(rnorm(128*128, mean=bg_mean, sd=noise_sd), nrow=128, ncol=128)
+
+  # Add a circular object in the center
+  x <- seq(-1, 1, length.out = 128)
+  coords <- expand.grid(x = x, y = x)
+  img[coords$x^2 + coords$y^2 < 0.3^2] <- rnorm(sum(coords$x^2 + coords$y^2 < 0.3^2), mean=signal_mean, sd=noise_sd)
+
+  return(img)
+}
+
+img_cnr1 <- create_cnr_image(1)
+img_cnr3 <- create_cnr_image(3)
+img_cnr5 <- create_cnr_image(5)
+```
+---
+---
+
+### Rose Criterion: Visualization Plots
+
+---
+```{r rose_criterion_plots, echo=FALSE, fig.cap="Same object at CNR=1 (left), CNR=3 (middle), and CNR=5 (right)."}
+p1 <- ggplot(melt(img_cnr1), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 1") + guides(fill="none") + scale_fill_viridis_c()
+p3 <- ggplot(melt(img_cnr3), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 3") + guides(fill="none") + scale_fill_viridis_c()
+p5 <- ggplot(melt(img_cnr5), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 5") + guides(fill="none") + scale_fill_viridis_c()
+
+p1 + p3 + p5
+```
+---
+---
+- At CNR=1, the object is nearly invisible. At CNR=3, you might see it if you look closely. At CNR=5, it is clearly detectable, confirming the Rose Criterion.
+---
+### Pop Quiz!
+
+An image region has a mean of 100 and a standard deviation of 25. What is its SNR?
+
+A) 100
+B) 25
+C) 4
+D) 0.25
+
+::: notes
+Answer: C) 4.
+SNR = Mean / Std Dev = 100 / 25 = 4. According to the Rose Criterion, this signal would be detectable, but perhaps not with high confidence.
+:::
+
+---
+### Noise Power Spectrum (NPS)
+
+The NPS (also called the Wiener Spectrum) describes the frequency content of the noise.
+
+---
+- It is the Fourier Transform of the noise autocorrelation function.
+---
+- In simpler terms: it tells you how much noise power is present at each spatial frequency.
+---
+- `NPS(k_x, k_y)`
+
+::: notes
+Just like a signal has a frequency spectrum, the noise in an image also has a frequency spectrum. The NPS is a critical tool for characterizing the texture and correlation of noise.
+:::
+
+---
+### NPS: Concept Visualization
+
+---
+- **White Noise:** Has a flat NPS. The noise power is equal at all spatial frequencies. This is typical for uncorrelated noise.
+---
+- **Colored Noise:** Has a non-flat NPS. This indicates that the noise is correlated. For example, noise might be stronger at lower frequencies. This is common after image filtering or reconstruction.
+
+::: notes
+Think of "white light," which has all colors (frequencies) equally. "White noise" has all spatial frequencies equally. If an image is blurry, it's because high frequencies have been removed. If the *noise* is blurry, it means the high-frequency components of the noise have been removed, leading to a non-flat NPS that drops off at high frequencies.
+:::
+
+---
+
+### NPS: Visualization Code
+
+---
+```{r nps_code, echo=TRUE}
+# Generate a 1D white noise signal
+white_noise <- rnorm(1024)
+nps_white <- Mod(fft(white_noise))^2 / length(white_noise)
+
+# Generate colored noise by filtering white noise (e.g., a simple moving average)
+colored_noise <- stats::filter(white_noise, rep(1/5, 5), sides=2)
+# Remove NAs introduced by filter at the edges
+colored_noise <- colored_noise[!is.na(colored_noise)]
+nps_colored <- Mod(fft(colored_noise))^2 / length(colored_noise)
+
+freq_axis_nps <- 1:length(nps_white)
+df_nps <- data.frame(
+  Frequency = freq_axis_nps,
+  White = nps_white,
+  Colored = c(nps_colored, rep(NA, length(nps_white) - length(nps_colored)))
+)
+```
+---
+---
+
+### NPS: Visualization Plot
+
+---
+```{r nps_plot, echo=FALSE, fig.cap="NPS of white noise (flat) vs. colored noise (low-pass)."}
+df_nps_melt <- melt(df_nps, id.vars="Frequency", variable.name="Type", value.name="Power")
+
+ggplot(df_nps_melt, aes(x=Frequency, y=Power, color=Type)) +
+  geom_line() +
+  ggtitle("Noise Power Spectrum (NPS)") +
+  xlim(0, length(nps_white) / 2) + # Show only first half of spectrum
+  theme_minimal()
+```
+---
+---
+- The white noise has a relatively flat spectrum. The colored (filtered) noise has much less power at high frequencies.
+
+---
+
+### Detective Quantum Efficiency (DQE)
+
+DQE is one of the most comprehensive metrics for assessing detector performance. It measures how efficiently a system transfers the SNR from its input to its output.
+
+$$ \text{DQE}(k) = \frac{\text{SNR}_{\text{out}}^2(k)}{\text{SNR}_{\text{in}}^2(k)} $$
+
+---
+
+### Detective Quantum Efficiency (DQE)
+---
+- It is a function of spatial frequency, `k`.
+---
+- A perfect detector would have DQE(k) = 1 for all frequencies. This is impossible.
+---
+- DQE tells us how much of the information present in the incoming x-ray signal is actually captured and preserved in the final image.
+
+::: notes
+DQE is the gold standard for detector characterization. It combines the effects of signal response, noise (NPS), and resolution (MTF). A high DQE means the detector is very good at producing a high-quality image with minimal dose.
+:::
+
+---
+### Module 2 Summary
+
+---
+- **Stochastic Systems** involve randomness, primarily from noise.
+---
+- **Poisson Noise** is signal-dependent (variance = mean).
+---
+- **Gaussian Noise** is signal-independent.
+
+---
+
+### Module 2 Summary
+---
+- **SNR** and **CNR** are key metrics for quantifying image quality.
+---
+- The **Rose Criterion** suggests a CNR of ~5 is needed for reliable detection.
+
+---
+
+### Module 2 Summary
+---
+- **NPS** describes the frequency content of noise.
+---
+- **DQE** is a comprehensive measure of detector efficiency.
+
+::: notes
+We've now covered the unpredictable aspects of imaging. We understand where noise comes from, how to describe it, and how to measure its impact on image quality. Next, we will combine our knowledge of deterministic systems and stochastic noise to understand how tomographic images are formed.
+:::
+
+## Module 3: Tomography
+
+::: notes
+Welcome to Module 3. Tomography is the process of creating a cross-sectional image from projection data. This is the physical and mathematical basis for CT, PET, and SPECT imaging. We will explore how we can reconstruct a 2D image from a series of 1D measurements.
+:::
+
+---
+### The Core Problem of Tomography
+
+---
+- **Forward Problem:** If we have an object, we can predict the measurements (projections) we will get from it. This is relatively easy.
+---
+- **Inverse Problem:** If we have a set of measurements (projections), can we reconstruct the original object? This is hard, and it's the fundamental challenge of tomography.
+
+---
+
+### The Core Problem of Tomography
+---
+- The answer is yes, under certain conditions, thanks to the mathematics we will explore.
+
+::: notes
+Imagine you have a semi-transparent object. You shine a light through it from many different angles and measure the shadows it casts. Tomographic reconstruction is the art of figuring out the internal structure of the object just by looking at those shadows.
+:::
+
+---
+### Creating a Phantom: Code
+
+First, we need an object to "image." We will synthetically create a simplified version of the Shepp-Logan phantom, which is a standard test object in medical imaging.
+
+---
+```{r phantom_code, echo=TRUE}
+# Create a simple phantom: a large circle with smaller circles inside
+create_phantom <- function(n = 256) {
+  phantom <- matrix(0, nrow = n, ncol = n)
+  x <- seq(-1, 1, length.out = n)
+  y <- seq(-1, 1, length.out = n)
+  coords <- expand.grid(x = x, y = y)
+
+  # Large background ellipse
+  phantom[coords$x^2 + coords$y^2 < 0.8^2] <- 0.5
+
+  # Two smaller high-density circles (e.g., bone)
+  phantom[(coords$x - 0.3)^2 + (coords$y - 0.2)^2 < 0.1^2] <- 1
+  phantom[(coords$x + 0.3)^2 + (coords$y - 0.2)^2 < 0.1^2] <- 1
+
+  # One smaller low-density circle (e.g., lesion)
+  phantom[(coords$x)^2 + (coords$y + 0.4)^2 < 0.2^2] <- 0.1
+
+  return(phantom)
+}
+
+phantom_image <- create_phantom()
+```
+---
+::: notes
+We are not loading any data. Instead, we write a function that generates a 2D matrix and mathematically "draws" circles on it to represent different structures within our phantom. This gives us a known ground truth to test our reconstruction algorithms against.
+:::
+
+---
+### Creating a Phantom: Visualization
+
+---
+```{r phantom_plot, echo=FALSE, fig.cap="A simple, synthetically generated Shepp-Logan style phantom."}
+df_phantom <- melt(phantom_image)
+colnames(df_phantom) <- c("Var1", "Var2", "value")
+ggplot(df_phantom, aes(x=Var1, y=Var2, fill=value)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "cividis") +
+  theme_void() +
+  ggtitle("Synthetic Phantom Image") +
+  guides(fill="none") +
+  coord_fixed()
+```
+---
+::: notes
+Here is our test object. It's a simple representation of a head-like structure with a gray matter background, two high-density bone-like objects, and a low-density lesion-like object. Our goal is to reconstruct this image after only measuring its projections.
+:::
+
+---
+### The Radon Transform: Math
+
+The Radon Transform is the mathematical formalization of taking a projection. It describes the process of integrating a 2D function `f(x,y)` along a line.
+
+$$ p(s, \theta) = \mathcal{R}\{f(x,y)\} = \int_{-\infty}^{\infty} f(s \cos\theta - u \sin\theta, s \sin\theta + u \cos\theta) du $$
+
+---
+- `p(s, θ)` is the projection at an angle `θ` and a distance `s` from the origin.
+---
+- This is the value of one point in the **sinogram**.
+
+::: notes
+This equation looks complex, but it's just a line integral. For a fixed angle `θ`, we are summing up all the pixel values along lines that are a distance `s` from the center. A CT scanner physically performs this integration by shining X-rays through the patient.
+:::
+
+---
+### Simulating Projections: Code
+
+We can't do a true continuous Radon Transform, but we can simulate it for a few discrete angles by rotating our phantom image and summing the columns.
+
+---
+```{r projection_code, echo=TRUE}
+# Simulate projections at a few angles
+angles <- seq(0, 179, by = 45)
+projections <- list()
+
+# Convert the matrix to a magick image object once
+# magick expects a 3D array (height, width, channels), so we reshape the 2D matrix
+phantom_array <- array(phantom_image, dim = c(nrow(phantom_image), ncol(phantom_image), 1))
+phantom_magick <- image_read(phantom_array)
+
+for (i in 1:length(angles)) {
+  # `magick` is used for rotation
+  img_rot <- image_rotate(phantom_magick, angles[i])
+
+  # Crop the image back to the original dimensions to handle resizing during rotation
+  geom_string <- paste0(nrow(phantom_image), "x", ncol(phantom_image), "+0+0^")
+  img_rot_cropped <- image_crop(img_rot, geom_string, gravity = "center")
+
+  # Extract the pixel data back into a matrix
+  rot_matrix <- as.numeric(image_data(img_rot_cropped, channels = "gray"))
+  dim(rot_matrix) <- dim(phantom_image)
+
+  # Sum the columns to get the 1D projection
+  projections[[i]] <- colSums(rot_matrix)
+}
+```
+---
+::: notes
+Here, we use a helper library to rotate our phantom image to different angles (0, 45, 90, 135 degrees). After each rotation, we simply sum the values in each column. This simulates a parallel-beam X-ray detector array measuring the total attenuation along each path.
+:::
+
+---
+### Simulating Projections: Visualization
+
+---
+```{r projection_plot, echo=FALSE, fig.cap="1D projections of the phantom at different angles."}
+df_proj <- data.frame()
+for (i in 1:length(angles)) {
+  temp_df <- data.frame(
+    Position = 1:length(projections[[i]]),
+    Value = projections[[i]],
+    Angle = as.factor(angles[i])
+  )
+  df_proj <- rbind(df_proj, temp_df)
+}
+
+ggplot(df_proj, aes(x = Position, y = Value, color = Angle)) +
+  geom_line(size=1) +
+  facet_wrap(~Angle, ncol = 2, scales="free_y") +
+  ggtitle("1D Projections at Different Angles") +
+  theme_minimal()
+```
+---
+::: notes
+Each plot shows the 1D "shadow" the phantom casts at that specific angle. You can see how the shape of the projection changes dramatically with the angle, encoding information about the object's internal structure.
+:::
+
+---
+### The Sinogram
+
+A sinogram is the collection of all 1D projections stacked together as an image.
+
+---
+- The y-axis represents the angle `θ` (from 0 to 180 degrees).
+---
+- The x-axis represents the detector position `s`.
+---
+- A single point in the object traces out a sinusoidal path in the sinogram. Hence the name.
+
+::: notes
+The sinogram is the raw data of a CT scanner. It's the domain where the measurement physically happens. The job of a reconstruction algorithm is to turn this sinogram back into a meaningful cross-sectional image.
+:::
+
+---
+### Sinogram Visualization: Code
+
+Let's generate a more complete sinogram with more angles to get a better visual.
+
+---
+```{r sinogram_code, echo=TRUE}
+# We'll use a package that has a Radon transform function for a better sinogram
+# Let's try to find one, otherwise we'll generate a fake one for visualization.
+# After a quick check, there isn't a simple, dependency-free one.
+# So, we generate a representative synthetic sinogram.
+
+n_angles <- 180
+n_detectors <- 256
+sino_matrix <- matrix(0, nrow = n_angles, ncol = n_detectors)
+s_vals <- seq(-1, 1, length.out=n_detectors)
+theta_vals <- seq(0, pi, length.out=n_angles)
+
+# Simulate the sinsusoids from the three main objects
+# Parameters are tweaked to look like a real sinogram of our phantom
+sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) 10*exp(-( (s - 0.3*sin(t+pi/4))^2)/0.01) )
+sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) 10*exp(-( (s + 0.3*sin(t+pi/4))^2)/0.01) )
+sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) -5*exp(-( (s - 0.4*cos(t))^2)/0.04) )
+```
+---
+::: notes
+Since performing a full, accurate Radon transform is complex, we are generating a *synthetic* sinogram for visualization purposes. We are mathematically creating the sinusoidal patterns that our phantom's features would produce. This lets us see what a real sinogram looks like.
+:::
+
+---
+### Sinogram Visualization: Plot
+
+---
+```{r sinogram_plot, echo=FALSE, fig.cap="A synthetic sinogram."}
+df_sino <- melt(sino_matrix)
+colnames(df_sino) <- c("Angle", "Detector", "Value")
+
+ggplot(df_sino, aes(x = Detector, y = Angle, fill = Value)) +
+  geom_raster() +
+  scale_fill_viridis_c() +
+  ggtitle("Synthetic Sinogram") +
+  labs(y = "Angle (theta)", x = "Detector Position (s)") +
+  theme_minimal()
+```
+---
+::: notes
+This is a sinogram. Each of the bright sine waves corresponds to one of the high-density objects in our phantom. The wider, darker sine wave corresponds to the low-density object. All the information required to reconstruct the image is encoded here.
+:::
+
+---
+### The Fourier Slice Theorem
+
+How do we get from the sinogram back to the image? The Fourier Slice Theorem is the theoretical key.
+
+---
+- It states that the **1D Fourier Transform of a projection at angle `θ`** is equal to a **slice through the 2D Fourier Transform of the object at that same angle `θ`**.
+
+---
+- `P(k, θ) = F(k cosθ, k sinθ)`
+
+::: notes
+This is a profound and powerful link. It connects the 1D measurements we can actually make (the projections) to the 2D frequency spectrum of the object we want to reconstruct. This theorem is the foundation of the most common reconstruction algorithm: filtered backprojection.
+:::
+
+---
+
+### Fourier Slice Theorem: Conceptual Diagram
+
+---
+```{r fst_diagram, echo=FALSE, fig.cap="Illustration of the Fourier Slice Theorem."}
+# Create a representation of a 2D Fourier space
+k_space <- expand.grid(kx = seq(-1, 1, by=0.1), ky = seq(-1, 1, by=0.1))
+
+# Define a slice at a 30-degree angle
+angle_rad <- 30 * pi / 180
+slice <- data.frame(kx = seq(-1, 1, length.out=100) * cos(angle_rad),
+                    ky = seq(-1, 1, length.out=100) * sin(angle_rad))
+
+ggplot() +
+  geom_tile(data = k_space, aes(x=kx, y=ky), fill="gray80", color="white") +
+  geom_line(data=slice, aes(x=kx, y=ky), color="red", size=2) +
+  labs(title="Fourier Slice Theorem",
+       subtitle="The 1D FT of a projection at angle θ... is a slice through the 2D FT at the same angle.",
+       x="kx", y="ky") +
+  coord_fixed() +
+  theme_minimal()
+```
+---
+---
+### Simple Backprojection: The Intuition
+
+The most naive way to reconstruct the image is "simple backprojection."
+
+---
+- For each projection, "smear" the values back across the image at the angle from which they were acquired.
+---
+- Sum up all these smeared-back projections.
+---
+- Intuitive, but deeply flawed.
+
+::: notes
+Think of it as reversing the projection process. If a detector at one position measured a high value, we assume that high value must have come from somewhere along the line that hit that detector. So we draw that line on our blank image canvas. We do this for all projections and hope the true image emerges.
+:::
+
+---
+### Backprojection: The "Star Artifact"
+
+Simple backprojection doesn't work perfectly. It produces a characteristic blurring, often called a "star artifact" or "1/r blurring."
+
+---
+- High-frequency information (sharp edges) is lost.
+---
+- The resulting image is a blurry version of the original.
+---
+- `f_blurry(x,y) = f(x,y) * (1/r)`, where `$r = \\sqrt{x^2 + y^2}$`.
+
+::: notes
+The smearing process intrinsically adds a blur. Each point in the original object gets smeared out into a star-like shape in the reconstructed image. The final image is the true image convolved with this blurring function.
+:::
+
+---
+### Backprojection: Visualization Code
+
+Let's simulate backprojecting just our two projections at 0 and 90 degrees to see the smearing.
+
+---
+```{r backprojection_code, echo=TRUE}
+recon_size <- length(projections[[1]])
+recon_image <- matrix(0, nrow = recon_size, ncol = recon_size)
+
+# Backproject the 0-degree projection (vertical smearing)
+proj_0 <- projections[[which(angles == 0)]]
+for (i in 1:recon_size) {
+  recon_image[, i] <- recon_image[, i] + proj_0
+}
+
+# Backproject the 90-degree projection (horizontal smearing)
+proj_90 <- projections[[which(angles == 90)]]
+for (i in 1:recon_size) {
+  recon_image[i, ] <- recon_image[i, ] + proj_90
+}
+```
+---
+::: notes
+We start with a blank image. First, we take the 0-degree projection and add its values to every row in the corresponding columns. This is the vertical "smearing." Then we take the 90-degree projection and add its values to every column in the corresponding rows (horizontal smearing).
+:::
+
+---
+### Backprojection: Visualization Plot
+
+---
+```{r backprojection_plot, echo=FALSE, fig.cap="Simple backprojection of just two angles, showing the characteristic smearing."}
+df_recon <- melt(recon_image)
+colnames(df_recon) <- c("Var1", "Var2", "value")
+ggplot(df_recon, aes(x=Var1, y=Var2, fill=value)) +
+  geom_raster() +
+  scale_fill_viridis_c() +
+  theme_void() +
+  ggtitle("Simple Backprojection (2 Angles)") +
+  coord_fixed()
+```
+---
+::: notes
+The result is a crude, blurry outline of the original phantom. You can see the vertical and horizontal smearing. If we added more angles, the image would get less streaky and more blurry, eventually converging on that 1/r blurred version of the true object.
+:::
+
+---
+### The Need for the Ramp Filter
+
+How do we fix the blur from backprojection? We need to "un-blur" the image.
+
+---
+- Since `f_blurry = f * (1/r)`, we need to convolve with the inverse of `(1/r)`.
+---
+- The Fourier Transform of `1/r` is `1/|k|`.
+---
+- To deconvolve, we multiply in the frequency domain by the inverse, which is `|k|`.
+---
+- This `|k|` filter is called a **Ramp Filter**.
+
+::: notes
+This is the key insight. Simple backprojection gets the low-frequency information right but suppresses the high frequencies. To correct this, we need to boost the high frequencies before or during backprojection. The ramp filter does exactly that. Its shape, `|k|`, looks like a ramp, hence the name.
+:::
+
+---
+
+### The Ramp Filter: Visualization
+
+---
+```{r ramp_filter_plot, echo=FALSE, fig.cap="The Ramp Filter in the frequency domain."}
+k <- seq(-1, 1, length.out = 1000)
+ramp_filter <- abs(k)
+df_ramp <- data.frame(Frequency = k, Value = ramp_filter)
+
+ggplot(df_ramp, aes(x = Frequency, y = Value)) +
+  geom_line(size = 1.5, color = "blue") +
+  ggtitle("The |k| Ramp Filter") +
+  xlab("Spatial Frequency (k)") +
+  ylab("Filter Magnitude") +
+  theme_minimal()
+```
+---
+---
+- The filter multiplies low frequencies near `k=0` by almost zero, and linearly boosts the higher frequencies.
+---
+### Filtered Backprojection (FBP)
+
+This leads to the most common analytical reconstruction algorithm: Filtered Backprojection (FBP).
+
+---
+1.  Measure all the 1D projections `p(s, θ)`.
+---
+2.  Take the 1D FT of each projection to get `P(k, θ)`.
+---
+3.  Multiply each `P(k, θ)` by the ramp filter `|k|`.
+
+---
+
+### Filtered Backprojection (FBP)
+---
+4.  Take the inverse 1D FT of the result.
+---
+5.  Backproject these "filtered" projections.
+
+---
+- This algorithm is fast, robust, and used in almost every commercial CT scanner.
+
+::: notes
+This is the complete recipe for CT reconstruction. The "filtering" step, which corrects for the backprojection blur, is the crucial addition that makes the whole process work.
+:::
+
+---
+### Iterative Reconstruction
+
+FBP is great, but it struggles with noisy or incomplete data. **Iterative Reconstruction** is an alternative approach.
+
+---
+- **Basic Idea:**
+---
+  1. Start with an initial guess for the image (e.g., a blank image).
+---
+  2. Use the Forward Model to simulate what the projections *would* look like from your guess.
+
+---
+
+### Iterative Reconstruction
+---
+  3. Compare these simulated projections to the *actual* measured projections.
+---
+  4. Update your image guess to reduce the error between the simulated and real projections.
+---
+  5. Repeat until the error is small.
+
+::: notes
+Iterative methods are like a game of "guess and check." You start with a guess, see how well it matches your data, and then intelligently improve your guess. This process is much slower than FBP but can produce better images in challenging situations, like low-dose CT.
+:::
+
+---
+### Algebraic Formulation (Ax = b)
+
+The iterative problem can be formulated with linear algebra.
+
+---
+- `x`: A vector containing all the pixel values of the image we want to find.
+---
+- `b`: A vector containing all the measured projection data.
+
+---
+
+### Algebraic Formulation (Ax = b)
+---
+- `A`: The "System Matrix." A massive matrix where each row describes how the pixel values in `x` contribute to a single measurement in `b`.
+
+---
+
+### Algebraic Formulation (Ax = b)
+---
+- The goal is to solve the system of linear equations `Ax = b` for `x`.
+
+::: notes
+For any realistic image size, the matrix A is far too enormous to solve by direct inversion. This is why we must use iterative algorithms like MLEM to find an approximate solution.
+:::
+
+---
+### MLEM (Maximum Likelihood Expectation Maximization)
+
+---
+- MLEM is a popular iterative algorithm, especially in PET and SPECT.
+
+---
+
+### MLEM (Maximum Likelihood Expectation Maximization)
+---
+- It's based on finding the image `x` that is most likely to have produced the measured data `b`, assuming Poisson statistics.
+
+---
+
+### MLEM (Maximum Likelihood Expectation Maximization)
+---
+- It has the desirable property of conserving counts and ensuring pixel values remain non-negative.
+
+::: notes
+We won't go into the details of the MLEM update equation, but the key takeaway is that it's an iterative method that is particularly well-suited to the Poisson noise statistics found in nuclear medicine.
+:::
+
+---
+### Module 3 Summary
+
+---
+- **Tomography** is the process of reconstructing an object from its projections.
+---
+- The **Radon Transform** is the mathematics of creating projections.
+---
+- A **Sinogram** is the collection of all projections.
+
+---
+
+### Module 3 Summary
+---
+- **Simple Backprojection** is intuitive but creates a blurry image (`1/r` blurring).
+---
+- **Filtered Backprojection (FBP)** uses a **Ramp Filter** to correct the blur and is the standard algorithm.
+---
+- **Iterative Methods** (like MLEM) are an alternative that can handle noise better but are computationally slower.
+
+::: notes
+We now understand the fundamental principles of how a CT scanner works, from data acquisition (projections) to the final image (reconstruction). In the final module, we will touch on more advanced applications and modern topics that build on these foundations.
+:::
+
+## Module 4: Advanced Applications
+
+::: notes
+In this final module, we will briefly touch upon several advanced topics and other imaging modalities. The goal is not to cover them in exhaustive detail, but to show how the fundamental concepts of signals, systems, and transforms that we've learned apply across all of medical imaging.
+:::
+
+---
+### Magnetic Resonance Imaging (MRI)
+
+---
+- MRI does not use ionizing radiation.
+
+---
+
+### Magnetic Resonance Imaging (MRI)
+---
+- It uses a powerful magnetic field, radiofrequency (RF) pulses, and magnetic field gradients to create images.
+
+---
+
+### Magnetic Resonance Imaging (MRI)
+---
+- The raw data collected in an MRI scan is not a projection, but a direct measurement of the object's frequency spectrum.
+
+::: notes
+MRI is one of the most direct applications of the Fourier Transform in medical imaging. The scanner literally "collects" the Fourier space of the patient's tissues.
+:::
+
+---
+### K-Space
+
+---
+- In MRI, the 2D Fourier space of the image is called **k-space**.
+
+---
+
+### K-Space
+---
+- The scanner fills k-space line by line according to a specific "pulse sequence."
+
+---
+
+### K-Space
+---
+- The final image is simply the inverse 2D Fourier Transform of the collected k-space data.
+
+$$ \text{Image}(x,y) = \mathcal{F}^{-1}\{ \text{k-space}(k_x, k_y) \} $$
+
+::: notes
+This is a critical concept. The center of k-space contains the low-frequency information (overall contrast and brightness). The periphery of k-space contains the high-frequency information (edges and fine details).
+:::
+
+---
+### K-Space Filtering: Code
+
+Let's use our phantom image to simulate what happens when we manipulate k-space. We'll take the 2D FT of our phantom to get its k-space, then try filtering it.
+
+---
+```{r kspace_filter_code, echo=TRUE}
+# We already have our phantom image and its 2D FT from Module 1 & 3
+# Let's re-calculate k-space (the shifted FT) for clarity
+kspace_full <- fft_shift(fft(phantom_image))
+
+# Create a low-pass filter (keep the center, zero out the periphery)
+center_fraction <- 0.2
+kspace_lowpass <- kspace_full
+rows <- nrow(kspace_lowpass)
+cols <- ncol(kspace_lowpass)
+r_mid <- floor(rows/2)
+c_mid <- floor(cols/2)
+r_keep <- floor(rows * center_fraction / 2)
+c_keep <- floor(cols * center_fraction / 2)
+mask_low <- matrix(0, rows, cols)
+mask_low[(r_mid-r_keep):(r_mid+r_keep), (c_mid-c_keep):(c_mid+c_keep)] <- 1
+kspace_lowpass <- kspace_lowpass * mask_low
+
+# Create a high-pass filter (zero out the center, keep the periphery)
+kspace_highpass <- kspace_full * (1 - mask_low)
+
+# Inverse FFT to get the images back
+# Remember to shift back before inverse FFT!
+img_lowpass <- Mod(fft(fft_shift(kspace_lowpass), inverse = TRUE))
+img_highpass <- Mod(fft(fft_shift(kspace_highpass), inverse = TRUE))
+```
+---
+::: notes
+Here we calculate the k-space of our phantom. We create a mask to isolate the center of k-space. For the low-pass filter, we multiply by this mask to keep only the center. For the high-pass filter, we multiply by the inverse of the mask. Then we perform the inverse FT to see the resulting images.
+:::
+
+---
+### K-Space Filtering: Visualization
+
+---
+```{r kspace_filter_plot, echo=FALSE, fig.cap="Effect of low-pass (center) and high-pass (right) filtering in k-space."}
+p_orig <- ggplot(melt(phantom_image), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("Original") + guides(fill="none") + scale_fill_viridis_c(option="cividis")
+
+p_low <- ggplot(melt(img_lowpass), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("Low-Pass (Blur)") + guides(fill="none") + scale_fill_viridis_c(option="cividis")
+
+p_high <- ggplot(melt(img_highpass), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("High-Pass (Edges)") + guides(fill="none") + scale_fill_viridis_c(option="cividis")
+
+p_orig + p_low + p_high
+```
+---
+::: notes
+The results perfectly illustrate the properties of k-space.
+- **Original:** Our clear phantom.
+- **Low-Pass:** Keeping only the center of k-space removes the high frequencies, resulting in a blurry image that only preserves the basic contrast.
+- **High-Pass:** Keeping only the periphery of k-space removes the low frequencies, resulting in an image that only shows the sharp edges.
+:::
+
+---
+### Discussion Question
+
+A patient moves during an MRI scan. This corrupts the data being acquired at that moment. If the motion occurs while the *center* of k-space is being acquired, what is the likely artifact on the final image?
+
+::: notes
+Answer: Widespread blurring or "ghosting" artifacts. The center of k-space holds the most signal energy and determines the overall contrast of the image. Corrupting this data has a severe, global impact on the image quality, much more so than corrupting the periphery.
+:::
+
+---
+### Ultrasound Imaging
+
+---
+- Uses high-frequency sound waves and their echoes to create images.
+
+---
+
+### Ultrasound Imaging
+---
+- The core principle is **beamforming**.
+
+---
+
+### Ultrasound Imaging
+---
+- **Beamforming:** By introducing microscopic time delays to the signals from individual elements in a transducer array, a focused ultrasound beam can be formed and steered electronically.
+
+::: notes
+Ultrasound is a beautiful example of using time-shifting and superposition—core concepts from our systems analysis—to physically shape and direct energy.
+:::
+
+---
+### Delay and Sum Beamforming
+
+---
+- **Transmission:** A pulse is sent from each transducer element, but with slightly different start times (delays). The wavefronts from all elements interfere constructively at a desired focal point.
+---
+- **Reception:** The returning echo hits each element at a slightly different time. By applying the reverse delays to the received signals and summing them, the system can "listen" preferentially from that same focal point.
+
+::: notes
+This "delay and sum" process is a form of spatial filtering. It allows the ultrasound machine to scan a beam through the tissue to build up an image line by line, all without any moving parts.
+:::
+
+---
+
+### Beamforming: Conceptual Diagram
+
+---
+```{r beamforming_diagram, echo=FALSE, fig.cap="Diagram of delay-and-sum beamforming to focus a wave."}
+elements <- data.frame(x = seq(-2, 2, by=1), y=0)
+focal_point <- data.frame(x=0, y=-4)
+
+# Create arcs representing wavefronts
+wavefronts <- data.frame()
+for (i in 1:nrow(elements)) {
+  dist <- sqrt((elements$x[i] - focal_point$x)^2 + (elements$y[i] - focal_point$y)^2)
+  delay <- max(sqrt((elements$x - focal_point$x)^2 + (elements$y - focal_point$y)^2)) - dist
+  for(r in seq(0.5, 4, by=0.5)) {
+    wavefronts <- rbind(wavefronts, data.frame(x0=elements$x[i], y0=elements$y[i], r=r, delay=delay))
+  }
+}
+
+ggplot() +
+  geom_point(data=elements, aes(x=x, y=y), size=5, shape=22, fill="blue") +
+  geom_point(data=focal_point, aes(x=x, y=y), size=5, color="red", shape=8) +
+  ggforce::geom_circle(data=wavefronts, aes(x0=x0, y0=y0, r=r), color="gray") +
+  coord_fixed(ylim=c(-5,1)) +
+  theme_void() +
+  ggtitle("Ultrasound Beamforming", subtitle="Outer elements fire earlier to create a focused wavefront.")
+```
+---
+---
+### Modern Topics: Compressed Sensing
+
+---
+- A relatively new paradigm in signal acquisition.
+---
+- **Core Idea:** If a signal is **sparse** in some domain (meaning most of its values are zero), it can be reconstructed from far fewer measurements than required by traditional sampling theory (Nyquist theorem).
+---
+- For example, many medical images are sparse in the wavelet domain.
+
+::: notes
+Compressed Sensing (CS) has had a huge impact on MRI. It allows us to intentionally undersample k-space (i.e., scan faster) and then use a sophisticated non-linear reconstruction algorithm to recover a high-quality image. It breaks the old rules of sampling, but only if the signal has a sparse structure.
+:::
+
+---
+
+### Sparsity: Conceptual Diagram
+
+---
+```{r sparsity_diagram, echo=FALSE, fig.cap="A non-sparse signal (left) and a sparse signal (right)."}
+# Non-sparse signal (e.g., sine wave)
+df_dense <- data.frame(x=1:100, y=sin(seq(0,10,length.out=100)))
+
+# Sparse signal (e.g., a few spikes)
+df_sparse <- data.frame(x=1:100, y=0)
+df_sparse$y[c(10, 30, 80)] <- c(1, -0.8, 0.9)
+
+p_d <- ggplot(df_dense, aes(x=x, y=y)) + geom_line() + ggtitle("Non-Sparse Signal")
+p_s <- ggplot(df_sparse, aes(x=x, y=y)) + geom_bar(stat="identity") + ggtitle("Sparse Signal")
+
+p_d + p_s
+```
+---
+---
+- A sparse signal is one where most of the values are zero (or very close to it). Compressed sensing works by finding a transform domain where the signal becomes sparse.
+---
+### Modern Topics: Deep Learning
+
+---
+- Deep Learning, particularly Convolutional Neural Networks (CNNs), has revolutionized medical image analysis.
+
+---
+
+### Modern Topics: Deep Learning
+---
+- A CNN is a type of neural network that uses convolution as its primary operation.
+
+---
+
+### Modern Topics: Deep Learning
+---
+- Instead of using a fixed filter (like a ramp filter or a smoothing filter), a CNN **learns** the optimal filter kernels directly from training data to perform a specific task.
+
+::: notes
+Think back to our convolution examples. We designed a simple averaging filter for denoising. A CNN might learn thousands of different, complex filter shapes that are perfectly optimized for removing a specific type of noise from a CT image, or for highlighting the texture of a tumor. They are essentially "learned filters."
+:::
+
+---
+### The Role of CNNs
+
+CNNs are used for a huge variety of tasks:
+---
+- **Image Reconstruction:** Learned alternatives to FBP or iterative methods.
+---
+- **Denoising:** Learning to remove noise more effectively than traditional filters.
+---
+- **Segmentation:** Automatically outlining organs or tumors.
+---
+- **Classification:** Diagnosing whether a lesion is benign or malignant.
+
+::: notes
+The field is moving incredibly quickly, but the core mathematical operations inside these complex networks are still convolutions and non-linear transformations—concepts that are extensions of the material we have covered in this course.
+:::
+
+---
+
+### CNN Architecture: Conceptual Diagram
+
+---
+```{r cnn_diagram, echo=FALSE, fig.cap="A simplified conceptual diagram of a Convolutional Neural Network (CNN) for image reconstruction."}
+# Define the layers of the CNN
+layers <- data.frame(
+  x = c(1, 2, 3, 4, 5, 6),
+  y = c(2, 2, 2, 2, 2, 2),
+  label = c("Input\n(Undersampled\nImage)", "Conv + ReLU", "Conv + ReLU", "...", "Final Conv", "Output\n(Reconstructed\nImage)"),
+  size = c(10, 8, 8, 2, 8, 10),
+  color = c("blue", "red", "red", "white", "red", "green")
+)
+
+# Create the plot
+ggplot(layers, aes(x = x, y = y, label = label)) +
+  geom_point(aes(size = size, color = color), shape = 15) + # Use squares for layers
+  geom_text(vjust = 2.5, size = 3) +
+  geom_segment(data = data.frame(x = 1:5, xend = 2:6), aes(x = x, y = 2, xend = xend, yend = 2), arrow = arrow(length = unit(0.3, "cm")), inherit.aes = FALSE) +
+  scale_size_continuous(range = c(20, 40)) +
+  theme_void() +
+  theme(legend.position = "none") +
+  ggtitle("Basic CNN Structure for Image Reconstruction")
+
+```
+---
+---
+- **Input Layer:** Takes the corrupted/undersampled image.
+---
+- **Hidden Layers:** A series of convolutional layers (often with non-linear activation functions like ReLU) extract features and learn the image structure.
+---
+- **Output Layer:** Produces the final, high-quality reconstructed image.
+---
+### Course Summary
+
+---
+- **Module 1:** We defined deterministic signals and LSI systems, and established convolution and the Fourier Transform as our core analytical tools.
+---
+- **Module 2:** We introduced the reality of stochastic systems, characterizing noise and its impact on image quality through metrics like SNR and DQE.
+
+---
+
+### Course Summary
+---
+- **Module 3:** We applied these tools to understand tomography, the process of image reconstruction from projections, using algorithms like FBP.
+---
+- **Module 4:** We saw how these fundamental concepts extend to other modalities like MRI and form the basis for modern techniques like compressed sensing and deep learning.
+
+::: notes
+Congratulations on completing the course. You now have the foundational knowledge to understand the physics and mathematics behind virtually any medical imaging system.
 :::
