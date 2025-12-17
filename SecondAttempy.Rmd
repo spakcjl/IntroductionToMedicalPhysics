@@ -7,18 +7,12 @@ output:
     slide_level: 2
 ---
 
-```{r env_setup, include=FALSE}
-# This is a workaround for a specific user environment where X11 is installed in a non-standard location.
-# This sets the dynamic library path so that the `imager` package can find its dependencies.
-Sys.setenv(DYLD_LIBRARY_PATH = "/Users/cjlong/Desktop/Apps/XQuartz_upacked/XQuartzComponent.pkg/opt/X11/lib")
-```
-
 ```{r setup, include=FALSE}
 # It's a good practice to set up the environment in the first chunk.
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 # Install necessary packages if they are not already installed
-required_packages <- c("ggplot2", "dplyr", "reticulate", "patchwork", "gganimate", "gifski")
+required_packages <- c("ggplot2", "dplyr", "reticulate", "patchwork", "gganimate", "gifski", "magick", "reshape2")
 for (pkg in required_packages) {
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg, repos = "http://cran.us.r-project.org")
@@ -924,23 +918,24 @@ This equation looks complex, but it's just a line integral. For a fixed angle `Î
 
 We can't do a true continuous Radon Transform, but we can simulate it for a few discrete angles by rotating our phantom image and summing the columns.
 
-```{r imager_setup, include=FALSE}
-# imager has a system dependency (X11), so we load it in its own chunk
-# to make debugging easier.
-library(imager)
-```
-
 ```{r projection_code, echo=TRUE}
 # Simulate projections at a few angles
 angles <- seq(0, 179, by = 45)
 projections <- list()
 
+# Convert the matrix to a magick image object once
+phantom_magick <- image_read(phantom_image)
+
 for (i in 1:length(angles)) {
-  # `imager` is helpful for rotation
-  img_rot <- as.cimg(phantom_image) %>% imrotate(angles[i], interpolation = "linear")
+  # `magick` is used for rotation
+  img_rot <- image_rotate(phantom_magick, angles[i])
+
+  # Extract the pixel data back into a matrix
+  rot_matrix <- as.numeric(image_data(img_rot, channels = "gray"))
+  dim(rot_matrix) <- dim(phantom_image)
 
   # Sum the columns to get the 1D projection
-  projections[[i]] <- colSums(as.matrix(img_rot))
+  projections[[i]] <- colSums(rot_matrix)
 }
 ```
 ::: notes
