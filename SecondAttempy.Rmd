@@ -32,7 +32,7 @@ tryCatch({
 
 ## Module 1: Deterministic Systems
 
-::: notes
+::: {.notes}
 Welcome to the first module. We will establish the fundamental mathematical and conceptual toolkit for signal and systems analysis. Pay close attention to the definitions, as they are the building blocks for everything that follows.
 :::
 
@@ -40,24 +40,37 @@ Welcome to the first module. We will establish the fundamental mathematical and 
 
 - **What is a signal?** A signal is a function that conveys information about a phenomenon.
 - In medical physics, signals are representations of physical quantities.
-  - Examples:
-    - Voltage from a detector
-    - X-ray intensity pattern
-    - Magnetic resonance signal over time
 
-::: notes
+---
+
+### Introduction to Signals: Examples
+
+- Voltage from a detector
+- X-ray intensity pattern
+- Magnetic resonance signal over time
+
+::: {.notes}
 A signal is just a function. For example, the temperature in this room over the course of the day is a signal. An MR signal is a function of time. An image is a function of spatial coordinates.
 :::
+
+---
 
 ### Continuous vs. Discrete Signals
 
 - **Continuous-Time Signal:** Defined for all points in time. Represented as `x(t)`.
 - **Discrete-Time Signal:** Defined only at specific, discrete points in time. Represented as `x[n]`.
+
+---
+
+### Continuous vs. Discrete Signals
+
 - This distinction is crucial for understanding digital acquisition and processing.
 
-::: notes
+::: {.notes}
 Think of a continuous signal as a smooth, unbroken line, like a wave. A discrete signal is a series of individual points, like readings taken every second. Computers can only work with discrete signals.
 :::
+
+---
 
 ### Visualization: Continuous vs. Discrete
 
@@ -95,7 +108,7 @@ library(patchwork)
 p1 + p2
 ```
 
-::: notes
+::: {.notes}
 On the left, we see the smooth `sin(t)`. On the right, we see samples of that same function. The process of converting from continuous to discrete is called **sampling**, a topic we will cover in great detail.
 :::
 
@@ -103,13 +116,18 @@ On the left, we see the smooth `sin(t)`. On the right, we see samples of that sa
 
 - We use a set of "building block" functions to model and analyze more complex signals.
 - Understanding these is essential for a deep intuition of systems.
+
+---
+
+### Standard Functions in Signal Processing
+
 - Key Functions:
   - The Rectangular Function (Rect)
   - The Sinc Function
   - The Dirac Delta Function
   - The Comb Function
 
-::: notes
+::: {.notes}
 These functions are like the primary colors of signal processing. We can combine them to create almost any signal we need.
 :::
 
@@ -125,7 +143,7 @@ $$
 \end{cases}
 $$
 
-::: notes
+::: {.notes}
 It's just a box. It's "on" (equal to 1) for a specific duration and "off" (equal to 0) everywhere else. This can model a pulse, a pixel, or an imaging aperture.
 :::
 
@@ -142,7 +160,7 @@ t <- seq(-2, 2, length.out = 1000)
 rect_data <- data.frame(Time = t, Amplitude = rect_func(t))
 ```
 
-::: notes
+::: {.notes}
 Here is the R code to implement the `rect` function. Notice the use of `ifelse` to handle the conditional logic defined in the mathematical formula.
 :::
 
@@ -156,7 +174,7 @@ ggplot(rect_data, aes(x = Time, y = Amplitude)) +
   ylim(0, 1.2)
 ```
 
-::: notes
+::: {.notes}
 And here is the visual output. A perfect box centered at zero with a width of 1.
 :::
 
@@ -168,7 +186,7 @@ $$
 \text{sinc}(t) = \frac{\sin(\pi t)}{\pi t}
 $$
 
-::: notes
+::: {.notes}
 The Sinc function describes the diffraction pattern of a rectangular aperture. It pops up everywhere in medical imaging, especially in MRI and CT. Notice it's undefined at t=0, but the limit is 1.
 :::
 
@@ -187,7 +205,7 @@ t_sinc <- seq(-5, 5, length.out = 2000)
 sinc_data <- data.frame(Time = t_sinc, Amplitude = sinc_func(t_sinc))
 ```
 
-::: notes
+::: {.notes}
 The code for Sinc is a direct translation of the formula, with a special case to handle the division by zero at t=0, where the function's value is 1.
 :::
 
@@ -201,7 +219,7 @@ ggplot(sinc_data, aes(x = Time, y = Amplitude)) +
   theme_minimal()
 ```
 
-::: notes
+::: {.notes}
 Notice the central lobe and the decaying side lobes. The zero crossings are at integer values of t. This shape is fundamental to understanding image resolution and aliasing.
 :::
 
@@ -214,7 +232,7 @@ B) 0.5
 C) 0
 D) Undefined
 
-::: notes
+::: {.notes}
 Answer: C) 0. The function is only 1 when the absolute value of t is less than or equal to 0.5. Since 1 > 0.5, the value is 0.
 :::
 
@@ -230,7 +248,7 @@ $$
 \delta(t) = 0 \text{ for } t \ne 0, \quad \text{and} \quad \int_{-\infty}^{\infty} \delta(t) dt = 1
 $$
 
-::: notes
+::: {.notes}
 The delta function is a mathematical idealization of a perfect impulse or a point source. It's impossible to create in reality, but it's an incredibly useful tool for analysis.
 :::
 
@@ -242,7 +260,7 @@ $$
 \int_{-\infty}^{\infty} f(t) \delta(t - t_0) dt = f(t_0)
 $$
 
-::: notes
+::: {.notes}
 This property is the foundation of sampling theory. Multiplying a signal by a delta function is like taking a perfect, instantaneous sample of that signal at that exact point.
 :::
 
@@ -257,17 +275,24 @@ $$
 - It is also known as the Shah function or an impulse train.
 - It is the mathematical model for the process of sampling.
 
-::: notes
+::: {.notes}
 Imagine a comb's teeth; each tooth is a delta function. When we multiply a continuous signal by a comb function, we are left with a series of discrete samples—the value of the signal at the location of each "tooth."
 :::
+
+---
 
 ### LSI Systems
 
 - **System:** A process that transforms an input signal `x(t)` into an output signal `y(t)`.
 - **LSI System:** A system that is both **Linear** and **Shift-Invariant**.
+
+---
+
+### LSI Systems
+
 - These properties make systems much easier to analyze. Most imaging systems are approximated as LSI systems.
 
-::: notes
+::: {.notes}
 LSI systems are the cornerstone of this field. If we know a system is LSI, we can predict its output for any input, simply by knowing its response to a single impulse.
 :::
 
@@ -280,7 +305,7 @@ A system is **linear** if it obeys the principle of superposition.
 2.  **Additivity:** `T{x1(t) + x2(t)} = T{x1(t)} + T{x2(t)}`
     - (The response to a sum of inputs is the sum of their individual responses)
 
-::: notes
+::: {.notes}
 In simple terms: if you double the input, you double the output. If you add two inputs together, the output is the sum of the outputs you would have gotten from each one separately. No surprises.
 :::
 
@@ -292,29 +317,32 @@ A system is **shift-invariant** if a shift in the input signal causes an identic
 
 - The behavior of the system does not change over time or space.
 
-::: notes
+::: {.notes}
 This is a crucial assumption. It means that the rules of the system don't change depending on when or where you apply the input. An X-ray system should produce the same image of a phantom today as it did yesterday (assuming the same technique).
 :::
+
+---
 
 ### Discussion Question
 
 Is the financial process of adding 5% interest to a bank account a **linear** system? Why or why not?
 
-::: notes
+::: {.notes}
 Let's analyze. Let the transformation T be applying interest.
 - Homogeneity: T{a * x} = 1.05 * (a*x). And a * T{x} = a * (1.05 * x). These are equal. Homogeneity holds.
 - Additivity: T{x1 + x2} = 1.05 * (x1 + x2). And T{x1} + T{x2} = 1.05*x1 + 1.05*x2. These are equal. Additivity holds.
 - Yes, it is a linear system.
 :::
 
+---
+
 ### Convolution: The Core of LSI Systems
 
-Convolution is the mathematical operation that describes the output of an LSI system.
-
+- Convolution is the mathematical operation that describes the output of an LSI system.
 - Every LSI system is completely characterized by its **Impulse Response Function (IRF)**, `h(t)`.
 - The output `y(t)` is the convolution of the input `x(t)` with the system's IRF `h(t)`.
 
-::: notes
+::: {.notes}
 This is the single most important concept for LSI systems. If you know the system's response to a perfect impulse (the IRF), you can calculate its response to literally any input.
 :::
 
@@ -329,7 +357,7 @@ $$
 - `*` denotes the convolution operation.
 - `τ` is a dummy variable of integration.
 
-::: notes
+::: {.notes}
 This equation looks intimidating, but it has a very intuitive meaning. It's a "weighted average" of the input signal, where the weighting function is the system's impulse response, flipped and shifted.
 :::
 
@@ -342,7 +370,7 @@ Think of `h(t)` as a "smearing" or "blurring" function. The convolution integral
 3.  **Multiply:** Multiply the input `x(τ)` by the shifted, flipped `h(t - τ)`.
 4.  **Integrate:** Calculate the area under the product. This area is the value of the output `y(t)` at that specific `t`.
 
-::: notes
+::: {.notes}
 This "flip, shift, multiply, integrate" process is the mechanical-graphical way to understand convolution. We will visualize this process to make it clearer.
 :::
 
@@ -369,7 +397,7 @@ df_smooth <- data.frame(Time = t_conv, Value = smoothed_signal, Type = "Smoothed
 # Combine for plotting
 df_conv <- rbind(df_noisy, df_smooth)
 ```
-::: notes
+::: {.notes}
 Here we create a signal with some high-frequency noise. Then we define a simple averaging kernel. The `filter` function in R performs a convolution, effectively applying a moving average to our noisy signal.
 :::
 
@@ -383,7 +411,7 @@ ggplot(df_conv, aes(x = Time, y = Value, color = Type)) +
   scale_color_manual(values = c("Noisy" = "gray", "Smoothed" = "red"))
 ```
 
-::: notes
+::: {.notes}
 The result is clear. The red "Smoothed" signal is a less noisy version of the original gray signal. The convolution has averaged out the rapid fluctuations, an example of low-pass filtering.
 :::
 
@@ -392,7 +420,9 @@ The result is clear. The red "Smoothed" signal is a less noisy version of the or
 - A revolutionary idea: **Any signal can be represented as a sum of sines and cosines.**
 - The **Fourier Transform (FT)** is the mathematical tool that decomposes a signal from its "time domain" into its constituent frequencies in the "frequency domain."
 
-::: notes
+---
+
+::: {.notes}
 Fourier analysis is like taking a musical chord and figuring out the individual notes that make it up. It's one of the most powerful tools in all of science and engineering.
 :::
 
@@ -408,7 +438,7 @@ $$
 - `X(k)`: The signal in the frequency domain.
 - `k`: Represents frequency.
 
-::: notes
+::: {.notes}
 This is the equation that takes us from the time domain to the frequency domain. The `exp(-i*2*pi*k*t)` term is Euler's formula, which represents sines and cosines. This integral measures "how much" of each frequency `k` is present in the signal `x(t)`.
 :::
 
@@ -422,7 +452,7 @@ $$ X(k) = \int_{-\infty}^{\infty} x(t) e^{-i 2\pi k t} dt $$
 - **`t`**: The time variable (or space).
 - **`i`**: The imaginary unit, `sqrt(-1)`.
 
-::: notes
+::: {.notes}
 The output `X(k)` is complex, which can be tricky. For visualization, we almost always look at the magnitude, `|X(k)|`, which is called the amplitude spectrum.
 :::
 
@@ -434,7 +464,7 @@ The FT is a "frequency machine."
 - It gives you a frequency-domain spectrum `X(k)` out.
 - A peak in `X(k)` at `k=k0` means the original signal `x(t)` contained a strong sinusoidal component at the frequency `k0`.
 
-::: notes
+::: {.notes}
 Think of it as a prism for signals. A prism takes in white light (a complex signal) and splits it into its constituent colors (the frequency spectrum). The Fourier Transform does the same for any signal.
 :::
 
@@ -457,7 +487,7 @@ freq_axis <- seq(0, fs, length.out = fs)
 df_fft <- data.frame(Frequency = freq_axis, Magnitude = fft_magnitude)
 ```
 
-::: notes
+::: {.notes}
 Here we create a pure 5 Hz sine wave. We then use R's `fft` function, which is a fast algorithm for computing the Discrete Fourier Transform. We calculate the magnitude for visualization.
 :::
 
@@ -476,7 +506,7 @@ p_freq <- ggplot(df_fft[1:(fs/2), ], aes(x = Frequency, y = Magnitude)) +
 p_time + p_freq
 ```
 
-::: notes
+::: {.notes}
 On the left is our signal. On the right is its Fourier spectrum. Notice the strong, sharp peak at exactly 5 Hz, just as we expected. The FT correctly identified the frequency content of the signal. The second peak near 95Hz is its alias due to Nyquist theorem.
 :::
 
@@ -492,7 +522,7 @@ $$
 - `F(kx, ky)`: The 2D frequency spectrum.
 - `kx, ky`: Spatial frequencies in the x and y directions.
 
-::: notes
+::: {.notes}
 Instead of temporal frequency, we now have spatial frequencies. `kx` represents how fast the image intensity changes in the x-direction, and `ky` for the y-direction. High spatial frequencies correspond to sharp edges, and low frequencies correspond to smooth areas.
 :::
 
@@ -527,7 +557,7 @@ fft_shift <- function(mat) {
 
 fft_magnitude_2d <- log(1 + Mod(fft_shift(fft_2d_result)))
 ```
-::: notes
+::: {.notes}
 We create a matrix representing a white square. We then compute its 2D FFT. A crucial step for visualization is `fft_shift`, which moves the zero-frequency component from the corner (where the algorithm places it) to the center, which is more intuitive for us to view. We also take the log to compress the dynamic range for better visibility.
 :::
 
@@ -550,7 +580,7 @@ p_fft_2d <- ggplot(df_fft_2d, aes(x = Var1, y = Var2, fill = value)) +
 
 p_img_2d + p_fft_2d
 ```
-::: notes
+::: {.notes}
 Just as the 1D FT of a Rect is a Sinc, the 2D FT of a 2D Rect is a 2D Sinc. On the right, you can see the bright central lobe and the fainter side lobes extending in the kx and ky directions. This is a fundamental relationship in imaging.
 :::
 
@@ -561,29 +591,38 @@ This is one of the most powerful theorems in signal processing. It states that c
 - **Convolution in Time/Space Domain <=> Multiplication in Frequency Domain**
   `\mathcal{F}\{x(t) * h(t)\} = X(k) \cdot H(k)`
 
+---
+
 - **Multiplication in Time/Space Domain <=> Convolution in Frequency Domain**
   `\mathcal{F}\{x(t) \cdot h(t)\} = X(k) * H(k)`
 
-::: notes
+::: {.notes}
 This theorem is a huge deal. Convolution is a computationally expensive operation (that big integral). Multiplication is extremely fast for a computer. The convolution theorem allows us to replace a slow convolution with two FFTs, a single multiplication, and an inverse FFT. This is the basis for fast filtering algorithms used in every imaging modality.
 :::
+
+---
 
 ### Module 1 Summary
 
 - Signals can be continuous or discrete.
 - We use standard functions (Rect, Sinc, Delta) as building blocks.
 - LSI (Linear and Shift-Invariant) systems are predictable and easy to analyze.
+
+---
+
+### Module 1 Summary
+
 - **Convolution** describes the output of any LSI system.
 - The **Fourier Transform** moves a signal between the time and frequency domains.
 - The **Convolution Theorem** provides a fast way to compute convolutions.
 
-::: notes
+::: {.notes}
 We have laid the entire groundwork for the course. Make sure you are comfortable with these concepts before we move on to stochastic systems, where things get a bit less predictable.
 :::
 
 ## Module 2: Stochastic Systems
 
-::: notes
+::: {.notes}
 Now we move from the predictable world of deterministic signals to the unpredictable world of stochastic processes. Noise is a fundamental component of all medical images, and understanding its properties is critical to evaluating and improving image quality.
 :::
 
@@ -593,9 +632,11 @@ Now we move from the predictable world of deterministic signals to the unpredict
 - **Stochastic System:** The output has some element of randomness. The output is described by probability distributions, not by a single, definite function.
 - **Noise** is the primary source of stochastic behavior in medical imaging.
 
-::: notes
+::: {.notes}
 In the real world, no system is truly deterministic. There's always some random fluctuation. In this module, we will learn how to characterize and quantify that randomness.
 :::
+
+---
 
 ### Major Noise Types in Medical Imaging
 
@@ -603,7 +644,7 @@ In the real world, no system is truly deterministic. There's always some random 
 - **Gaussian Noise (Electronic Noise):** Arises from thermal fluctuations in electronic components. It's generally signal-independent.
 - **Rician Noise:** Found in MRI, resulting from the combination of a real signal with Gaussian noise in two orthogonal channels.
 
-::: notes
+::: {.notes}
 We will focus on Poisson and Gaussian noise as they are the most common and form the basis for understanding more complex noise models.
 :::
 
@@ -617,7 +658,7 @@ $$ P(k; \lambda) = \frac{\lambda^k e^{-\lambda}}{k!} $$
 - In imaging, `λ` is the expected number of photons.
 - A key property: **The variance is equal to the mean (`σ² = λ`)**.
 
-::: notes
+::: {.notes}
 This is the noise of counting statistics. If you expect to detect an average of 100 photons in a pixel, the standard deviation of that measurement will be the square root of 100, which is 10. This signal-dependent nature is a defining feature.
 :::
 
@@ -638,7 +679,7 @@ sample_mean <- mean(poisson_data)
 sample_variance <- var(poisson_data)
 ```
 
-::: notes
+::: {.notes}
 We use R's `rpois` function to simulate `r num_samples` measurements from a process with a mean of `r mean_photons` photons. We then calculate the mean and variance to check if they are approximately equal, as the theory predicts.
 :::
 
@@ -654,7 +695,7 @@ ggplot(df_poisson, aes(x = Counts)) +
   theme_minimal()
 ```
 
-::: notes
+::: {.notes}
 As you can see, the distribution is centered around our mean of 25. The subtitle confirms the core property of Poisson noise: the sample mean is very close to the sample variance.
 :::
 
@@ -667,7 +708,7 @@ $$ f(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{ - \frac{ (x - \mu)^2
 - This is the classic "bell curve."
 - In contrast to Poisson noise, the variance (`σ²`) is independent of the mean signal (`μ`).
 
-::: notes
+::: {.notes}
 This noise is additive and constant. It comes from the electronics in the imaging chain. Whether the signal is bright or dark, the amount of electronic noise added is generally the same.
 :::
 
@@ -685,7 +726,7 @@ gaussian_data <- rnorm(num_samples, mean = mean_signal, sd = noise_std_dev)
 df_gaussian <- data.frame(Value = gaussian_data)
 ```
 
-::: notes
+::: {.notes}
 Here we use `rnorm` to simulate `r num_samples` measurements. The key difference is that we explicitly define both the mean and the standard deviation, as they are independent parameters.
 :::
 
@@ -699,7 +740,7 @@ ggplot(df_gaussian, aes(x = Value)) +
   theme_minimal()
 ```
 
-::: notes
+::: {.notes}
 The histogram perfectly follows the classic bell curve shape, overlaid in blue. This is characteristic of electronic noise in detectors.
 :::
 
@@ -711,7 +752,7 @@ $$ \text{SNR} = \frac{\text{Mean Signal}}{\text{Standard Deviation of Noise}} = 
 
 - A higher SNR means a cleaner, more reliable measurement.
 
-::: notes
+::: {.notes}
 SNR is the currency of imaging. We are constantly trading other parameters—like scan time or radiation dose—to improve SNR. An SNR of 1 means the noise is as strong as the signal, making the signal very hard to detect.
 :::
 
@@ -724,7 +765,7 @@ $$ \text{CNR} = \frac{|\text{Mean}_A - \text{Mean}_B|}{\sqrt{\sigma_A^2 + \sigma
 - `A` and `B` are two regions of interest.
 - High CNR is essential for detecting pathology. An object can have high contrast, but if the noise is too high, CNR will be low and it will be invisible.
 
-::: notes
+::: {.notes}
 While SNR tells you about the quality in one area, CNR tells you about your ability to tell two areas apart. This is often more clinically relevant. Can I distinguish this tumor from the surrounding healthy tissue? That is a CNR question.
 :::
 
@@ -741,7 +782,7 @@ mean_B <- 50
 img[100:156, 100:156] <- rnorm(57*57, mean = mean_A, sd = 20)
 ```
 
-::: notes
+::: {.notes}
 We create a noisy background image. Then, we insert a square patch in the middle that has a slightly higher mean value but the same level of noise. We will now visualize this to see if we can detect the square.
 :::
 
@@ -758,7 +799,7 @@ ggplot(df_cnr_img, aes(x=Var1, y=Var2, fill=value)) +
   guides(fill="none")
 ```
 
-::: notes
+::: {.notes}
 Whether or not you can easily see the square depends on the CNR. If we increase the difference in means or decrease the noise, the square becomes more obvious. This leads us to our next topic...
 :::
 
@@ -770,7 +811,7 @@ How much CNR do you need? The Rose Criterion provides a rule of thumb.
 
 - This is not a hard physical law, but a widely accepted psychophysical guideline.
 
-::: notes
+::: {.notes}
 This is a very practical rule. If your calculated CNR for a lesion is only 1 or 2, a radiologist is very likely to miss it. We need to design our imaging systems and protocols to ensure the CNR for the targets of interest exceeds this threshold of 5.
 :::
 
@@ -783,7 +824,7 @@ B) 25
 C) 4
 D) 0.25
 
-::: notes
+::: {.notes}
 Answer: C) 4.
 SNR = Mean / Std Dev = 100 / 25 = 4. According to the Rose Criterion, this signal would be detectable, but perhaps not with high confidence.
 :::
@@ -796,7 +837,7 @@ The NPS (also called the Wiener Spectrum) describes the frequency content of the
 - In simpler terms: it tells you how much noise power is present at each spatial frequency.
 - `NPS(k_x, k_y)`
 
-::: notes
+::: {.notes}
 Just like a signal has a frequency spectrum, the noise in an image also has a frequency spectrum. The NPS is a critical tool for characterizing the texture and correlation of noise.
 :::
 
@@ -805,9 +846,11 @@ Just like a signal has a frequency spectrum, the noise in an image also has a fr
 - **White Noise:** Has a flat NPS. The noise power is equal at all spatial frequencies. This is typical for uncorrelated noise.
 - **Colored Noise:** Has a non-flat NPS. This indicates that the noise is correlated. For example, noise might be stronger at lower frequencies. This is common after image filtering or reconstruction.
 
-::: notes
+::: {.notes}
 Think of "white light," which has all colors (frequencies) equally. "White noise" has all spatial frequencies equally. If an image is blurry, it's because high frequencies have been removed. If the *noise* is blurry, it means the high-frequency components of the noise have been removed, leading to a non-flat NPS that drops off at high frequencies.
 :::
+
+---
 
 ### Detective Quantum Efficiency (DQE)
 
@@ -815,11 +858,15 @@ DQE is one of the most comprehensive metrics for assessing detector performance.
 
 $$ \text{DQE}(k) = \frac{\text{SNR}_{\text{out}}^2(k)}{\text{SNR}_{\text{in}}^2(k)} $$
 
+---
+
+### Detective Quantum Efficiency (DQE)
+
 - It is a function of spatial frequency, `k`.
 - A perfect detector would have DQE(k) = 1 for all frequencies. This is impossible.
 - DQE tells us how much of the information present in the incoming x-ray signal is actually captured and preserved in the final image.
 
-::: notes
+::: {.notes}
 DQE is the gold standard for detector characterization. It combines the effects of signal response, noise (NPS), and resolution (MTF). A high DQE means the detector is very good at producing a high-quality image with minimal dose.
 :::
 
@@ -828,18 +875,28 @@ DQE is the gold standard for detector characterization. It combines the effects 
 - **Stochastic Systems** involve randomness, primarily from noise.
 - **Poisson Noise** is signal-dependent (variance = mean).
 - **Gaussian Noise** is signal-independent.
+
+---
+
+### Module 2 Summary
+
 - **SNR** and **CNR** are key metrics for quantifying image quality.
 - The **Rose Criterion** suggests a CNR of ~5 is needed for reliable detection.
+
+---
+
+### Module 2 Summary
+
 - **NPS** describes the frequency content of noise.
 - **DQE** is a comprehensive measure of detector efficiency.
 
-::: notes
+::: {.notes}
 We've now covered the unpredictable aspects of imaging. We understand where noise comes from, how to describe it, and how to measure its impact on image quality. Next, we will combine our knowledge of deterministic systems and stochastic noise to understand how tomographic images are formed.
 :::
 
 ## Module 3: Tomography
 
-::: notes
+::: {.notes}
 Welcome to Module 3. Tomography is the process of creating a cross-sectional image from projection data. This is the physical and mathematical basis for CT, PET, and SPECT imaging. We will explore how we can reconstruct a 2D image from a series of 1D measurements.
 :::
 
@@ -847,9 +904,14 @@ Welcome to Module 3. Tomography is the process of creating a cross-sectional ima
 
 - **Forward Problem:** If we have an object, we can predict the measurements (projections) we will get from it. This is relatively easy.
 - **Inverse Problem:** If we have a set of measurements (projections), can we reconstruct the original object? This is hard, and it's the fundamental challenge of tomography.
+
+---
+
+### The Core Problem of Tomography
+
 - The answer is yes, under certain conditions, thanks to the mathematics we will explore.
 
-::: notes
+::: {.notes}
 Imagine you have a semi-transparent object. You shine a light through it from many different angles and measure the shadows it casts. Tomographic reconstruction is the art of figuring out the internal structure of the object just by looking at those shadows.
 :::
 
@@ -880,7 +942,7 @@ create_phantom <- function(n = 256) {
 
 phantom_image <- create_phantom()
 ```
-::: notes
+::: {.notes}
 We are not loading any data. Instead, we write a function that generates a 2D matrix and mathematically "draws" circles on it to represent different structures within our phantom. This gives us a known ground truth to test our reconstruction algorithms against.
 :::
 
@@ -897,7 +959,7 @@ ggplot(df_phantom, aes(x=Var1, y=Var2, fill=value)) +
   guides(fill="none") +
   coord_fixed()
 ```
-::: notes
+::: {.notes}
 Here is our test object. It's a simple representation of a head-like structure with a gray matter background, two high-density bone-like objects, and a low-density lesion-like object. Our goal is to reconstruct this image after only measuring its projections.
 :::
 
@@ -910,7 +972,7 @@ $$ p(s, \theta) = \mathcal{R}\{f(x,y)\} = \int_{-\infty}^{\infty} f(s \cos\theta
 - `p(s, θ)` is the projection at an angle `θ` and a distance `s` from the origin.
 - This is the value of one point in the **sinogram**.
 
-::: notes
+::: {.notes}
 This equation looks complex, but it's just a line integral. For a fixed angle `θ`, we are summing up all the pixel values along lines that are a distance `s` from the center. A CT scanner physically performs this integration by shining X-rays through the patient.
 :::
 
@@ -944,7 +1006,7 @@ for (i in 1:length(angles)) {
   projections[[i]] <- colSums(rot_matrix)
 }
 ```
-::: notes
+::: {.notes}
 Here, we use a helper library to rotate our phantom image to different angles (0, 45, 90, 135 degrees). After each rotation, we simply sum the values in each column. This simulates a parallel-beam X-ray detector array measuring the total attenuation along each path.
 :::
 
@@ -967,7 +1029,7 @@ ggplot(df_proj, aes(x = Position, y = Value, color = Angle)) +
   ggtitle("1D Projections at Different Angles") +
   theme_minimal()
 ```
-::: notes
+::: {.notes}
 Each plot shows the 1D "shadow" the phantom casts at that specific angle. You can see how the shape of the projection changes dramatically with the angle, encoding information about the object's internal structure.
 :::
 
@@ -979,7 +1041,7 @@ A sinogram is the collection of all 1D projections stacked together as an image.
 - The x-axis represents the detector position `s`.
 - A single point in the object traces out a sinusoidal path in the sinogram. Hence the name.
 
-::: notes
+::: {.notes}
 The sinogram is the raw data of a CT scanner. It's the domain where the measurement physically happens. The job of a reconstruction algorithm is to turn this sinogram back into a meaningful cross-sectional image.
 :::
 
@@ -1006,7 +1068,7 @@ sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) 10*exp(-( (
 sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) -5*exp(-( (s - 0.4*cos(t))^2)/0.04) )
 ```
 
-::: notes
+::: {.notes}
 Since performing a full, accurate Radon transform is complex, we are generating a *synthetic* sinogram for visualization purposes. We are mathematically creating the sinusoidal patterns that our phantom's features would produce. This lets us see what a real sinogram looks like.
 :::
 
@@ -1023,7 +1085,7 @@ ggplot(df_sino, aes(x = Detector, y = Angle, fill = Value)) +
   labs(y = "Angle (theta)", x = "Detector Position (s)") +
   theme_minimal()
 ```
-::: notes
+::: {.notes}
 This is a sinogram. Each of the bright sine waves corresponds to one of the high-density objects in our phantom. The wider, darker sine wave corresponds to the low-density object. All the information required to reconstruct the image is encoded here.
 :::
 
@@ -1035,7 +1097,7 @@ How do we get from the sinogram back to the image? The Fourier Slice Theorem is 
 
 - `P(k, θ) = F(k cosθ, k sinθ)`
 
-::: notes
+::: {.notes}
 This is a profound and powerful link. It connects the 1D measurements we can actually make (the projections) to the 2D frequency spectrum of the object we want to reconstruct. This theorem is the foundation of the most common reconstruction algorithm: filtered backprojection.
 :::
 
@@ -1047,7 +1109,7 @@ The most naive way to reconstruct the image is "simple backprojection."
 - Sum up all these smeared-back projections.
 - Intuitive, but deeply flawed.
 
-::: notes
+::: {.notes}
 Think of it as reversing the projection process. If a detector at one position measured a high value, we assume that high value must have come from somewhere along the line that hit that detector. So we draw that line on our blank image canvas. We do this for all projections and hope the true image emerges.
 :::
 
@@ -1059,7 +1121,7 @@ Simple backprojection doesn't work perfectly. It produces a characteristic blurr
 - The resulting image is a blurry version of the original.
 - `f_blurry(x,y) = f(x,y) * (1/r)`, where `$r = \\sqrt{x^2 + y^2}$`.
 
-::: notes
+::: {.notes}
 The smearing process intrinsically adds a blur. Each point in the original object gets smeared out into a star-like shape in the reconstructed image. The final image is the true image convolved with this blurring function.
 :::
 
@@ -1083,7 +1145,7 @@ for (i in 1:recon_size) {
   recon_image[i, ] <- recon_image[i, ] + proj_90
 }
 ```
-::: notes
+::: {.notes}
 We start with a blank image. First, we take the 0-degree projection and add its values to every row in the corresponding columns. This is the vertical "smearing." Then we take the 90-degree projection and add its values to every column in the corresponding rows (horizontal smearing).
 :::
 
@@ -1099,7 +1161,7 @@ ggplot(df_recon, aes(x=Var1, y=Var2, fill=value)) +
   ggtitle("Simple Backprojection (2 Angles)") +
   coord_fixed()
 ```
-::: notes
+::: {.notes}
 The result is a crude, blurry outline of the original phantom. You can see the vertical and horizontal smearing. If we added more angles, the image would get less streaky and more blurry, eventually converging on that 1/r blurred version of the true object.
 :::
 
@@ -1112,7 +1174,7 @@ How do we fix the blur from backprojection? We need to "un-blur" the image.
 - To deconvolve, we multiply in the frequency domain by the inverse, which is `|k|`.
 - This `|k|` filter is called a **Ramp Filter**.
 
-::: notes
+::: {.notes}
 This is the key insight. Simple backprojection gets the low-frequency information right but suppresses the high frequencies. To correct this, we need to boost the high frequencies before or during backprojection. The ramp filter does exactly that. Its shape, `|k|`, looks like a ramp, hence the name.
 :::
 
@@ -1128,7 +1190,7 @@ This leads to the most common analytical reconstruction algorithm: Filtered Back
 
 - This algorithm is fast, robust, and used in almost every commercial CT scanner.
 
-::: notes
+::: {.notes}
 This is the complete recipe for CT reconstruction. The "filtering" step, which corrects for the backprojection blur, is the crucial addition that makes the whole process work.
 :::
 
@@ -1143,7 +1205,7 @@ FBP is great, but it struggles with noisy or incomplete data. **Iterative Recons
   4. Update your image guess to reduce the error between the simulated and real projections.
   5. Repeat until the error is small.
 
-::: notes
+::: {.notes}
 Iterative methods are like a game of "guess and check." You start with a guess, see how well it matches your data, and then intelligently improve your guess. This process is much slower than FBP but can produce better images in challenging situations, like low-dose CT.
 :::
 
@@ -1157,7 +1219,7 @@ The iterative problem can be formulated with linear algebra.
 
 - The goal is to solve the system of linear equations `Ax = b` for `x`.
 
-::: notes
+::: {.notes}
 For any realistic image size, the matrix A is far too enormous to solve by direct inversion. This is why we must use iterative algorithms like MLEM to find an approximate solution.
 :::
 
@@ -1167,7 +1229,7 @@ For any realistic image size, the matrix A is far too enormous to solve by direc
 - It's based on finding the image `x` that is most likely to have produced the measured data `b`, assuming Poisson statistics.
 - It has the desirable property of conserving counts and ensuring pixel values remain non-negative.
 
-::: notes
+::: {.notes}
 We won't go into the details of the MLEM update equation, but the key takeaway is that it's an iterative method that is particularly well-suited to the Poisson noise statistics found in nuclear medicine.
 :::
 
@@ -1176,17 +1238,22 @@ We won't go into the details of the MLEM update equation, but the key takeaway i
 - **Tomography** is the process of reconstructing an object from its projections.
 - The **Radon Transform** is the mathematics of creating projections.
 - A **Sinogram** is the collection of all projections.
+
+---
+
+### Module 3 Summary
+
 - **Simple Backprojection** is intuitive but creates a blurry image (`1/r` blurring).
 - **Filtered Backprojection (FBP)** uses a **Ramp Filter** to correct the blur and is the standard algorithm.
 - **Iterative Methods** (like MLEM) are an alternative that can handle noise better but are computationally slower.
 
-::: notes
+::: {.notes}
 We now understand the fundamental principles of how a CT scanner works, from data acquisition (projections) to the final image (reconstruction). In the final module, we will touch on more advanced applications and modern topics that build on these foundations.
 :::
 
 ## Module 4: Advanced Applications
 
-::: notes
+::: {.notes}
 In this final module, we will briefly touch upon several advanced topics and other imaging modalities. The goal is not to cover them in exhaustive detail, but to show how the fundamental concepts of signals, systems, and transforms that we've learned apply across all of medical imaging.
 :::
 
@@ -1196,7 +1263,7 @@ In this final module, we will briefly touch upon several advanced topics and oth
 - It uses a powerful magnetic field, radiofrequency (RF) pulses, and magnetic field gradients to create images.
 - The raw data collected in an MRI scan is not a projection, but a direct measurement of the object's frequency spectrum.
 
-::: notes
+::: {.notes}
 MRI is one of the most direct applications of the Fourier Transform in medical imaging. The scanner literally "collects" the Fourier space of the patient's tissues.
 :::
 
@@ -1208,7 +1275,7 @@ MRI is one of the most direct applications of the Fourier Transform in medical i
 
 $$ \text{Image}(x,y) = \mathcal{F}^{-1}\{ \text{k-space}(k_x, k_y) \} $$
 
-::: notes
+::: {.notes}
 This is a critical concept. The center of k-space contains the low-frequency information (overall contrast and brightness). The periphery of k-space contains the high-frequency information (edges and fine details).
 :::
 
@@ -1242,7 +1309,7 @@ kspace_highpass <- kspace_full * (1 - mask_low)
 img_lowpass <- Mod(fft(fft_shift(kspace_lowpass), inverse = TRUE))
 img_highpass <- Mod(fft(fft_shift(kspace_highpass), inverse = TRUE))
 ```
-::: notes
+::: {.notes}
 Here we calculate the k-space of our phantom. We create a mask to isolate the center of k-space. For the low-pass filter, we multiply by this mask to keep only the center. For the high-pass filter, we multiply by the inverse of the mask. Then we perform the inverse FT to see the resulting images.
 :::
 
@@ -1257,7 +1324,7 @@ p_high <- ggplot(melt(img_highpass), aes(x=Var1, y=Var2, fill=value)) + geom_ras
 
 p_orig + p_low + p_high
 ```
-::: notes
+::: {.notes}
 The results perfectly illustrate the properties of k-space.
 - **Original:** Our clear phantom.
 - **Low-Pass:** Keeping only the center of k-space removes the high frequencies, resulting in a blurry image that only preserves the basic contrast.
@@ -1268,7 +1335,7 @@ The results perfectly illustrate the properties of k-space.
 
 A patient moves during an MRI scan. This corrupts the data being acquired at that moment. If the motion occurs while the *center* of k-space is being acquired, what is the likely artifact on the final image?
 
-::: notes
+::: {.notes}
 Answer: Widespread blurring or "ghosting" artifacts. The center of k-space holds the most signal energy and determines the overall contrast of the image. Corrupting this data has a severe, global impact on the image quality, much more so than corrupting the periphery.
 :::
 
@@ -1278,7 +1345,7 @@ Answer: Widespread blurring or "ghosting" artifacts. The center of k-space holds
 - The core principle is **beamforming**.
 - **Beamforming:** By introducing microscopic time delays to the signals from individual elements in a transducer array, a focused ultrasound beam can be formed and steered electronically.
 
-::: notes
+::: {.notes}
 Ultrasound is a beautiful example of using time-shifting and superposition—core concepts from our systems analysis—to physically shape and direct energy.
 :::
 
@@ -1287,7 +1354,7 @@ Ultrasound is a beautiful example of using time-shifting and superposition—cor
 - **Transmission:** A pulse is sent from each transducer element, but with slightly different start times (delays). The wavefronts from all elements interfere constructively at a desired focal point.
 - **Reception:** The returning echo hits each element at a slightly different time. By applying the reverse delays to the received signals and summing them, the system can "listen" preferentially from that same focal point.
 
-::: notes
+::: {.notes}
 This "delay and sum" process is a form of spatial filtering. It allows the ultrasound machine to scan a beam through the tissue to build up an image line by line, all without any moving parts.
 :::
 
@@ -1297,7 +1364,7 @@ This "delay and sum" process is a form of spatial filtering. It allows the ultra
 - **Core Idea:** If a signal is **sparse** in some domain (meaning most of its values are zero), it can be reconstructed from far fewer measurements than required by traditional sampling theory (Nyquist theorem).
 - For example, many medical images are sparse in the wavelet domain.
 
-::: notes
+::: {.notes}
 Compressed Sensing (CS) has had a huge impact on MRI. It allows us to intentionally undersample k-space (i.e., scan faster) and then use a sophisticated non-linear reconstruction algorithm to recover a high-quality image. It breaks the old rules of sampling, but only if the signal has a sparse structure.
 :::
 
@@ -1307,7 +1374,7 @@ Compressed Sensing (CS) has had a huge impact on MRI. It allows us to intentiona
 - A CNN is a type of neural network that uses convolution as its primary operation.
 - Instead of using a fixed filter (like a ramp filter or a smoothing filter), a CNN **learns** the optimal filter kernels directly from training data to perform a specific task.
 
-::: notes
+::: {.notes}
 Think back to our convolution examples. We designed a simple averaging filter for denoising. A CNN might learn thousands of different, complex filter shapes that are perfectly optimized for removing a specific type of noise from a CT image, or for highlighting the texture of a tumor. They are essentially "learned filters."
 :::
 
@@ -1319,7 +1386,7 @@ CNNs are used for a huge variety of tasks:
 - **Segmentation:** Automatically outlining organs or tumors.
 - **Classification:** Diagnosing whether a lesion is benign or malignant.
 
-::: notes
+::: {.notes}
 The field is moving incredibly quickly, but the core mathematical operations inside these complex networks are still convolutions and non-linear transformations—concepts that are extensions of the material we have covered in this course.
 :::
 
@@ -1327,9 +1394,14 @@ The field is moving incredibly quickly, but the core mathematical operations ins
 
 - **Module 1:** We defined deterministic signals and LSI systems, and established convolution and the Fourier Transform as our core analytical tools.
 - **Module 2:** We introduced the reality of stochastic systems, characterizing noise and its impact on image quality through metrics like SNR and DQE.
+
+---
+
+### Course Summary
+
 - **Module 3:** We applied these tools to understand tomography, the process of image reconstruction from projections, using algorithms like FBP.
 - **Module 4:** We saw how these fundamental concepts extend to other modalities like MRI and form the basis for modern techniques like compressed sensing and deep learning.
 
-::: notes
+::: {.notes}
 Congratulations on completing the course. You now have the foundational knowledge to understand the physics and mathematics behind virtually any medical imaging system.
 :::
