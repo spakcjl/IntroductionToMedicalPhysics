@@ -12,13 +12,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 # Load necessary packages
-library(ggplot2)
-library(dplyr)
 library(reticulate)
-library(patchwork)
-library(magick)
-library(reshape2)
-library(ggforce)
 
 # Configure reticulate to use the system's default Python
 # This avoids issues with virtual environments in this context.
@@ -79,38 +73,43 @@ Think of a continuous signal as a smooth, unbroken line, like a wave. A discrete
 
 ### Visualization: Continuous vs. Discrete
 
-```{r continuous_discrete_plot, echo=FALSE, fig.cap="A continuous sine wave."}
-library(ggplot2)
-library(dplyr)
+```{python continuous_discrete_plot, echo=FALSE, fig.cap="A continuous sine wave."}
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Continuous Signal
-t_cont <- seq(0, 2 * pi, length.out = 500)
-x_cont <- sin(t_cont)
-df_cont <- data.frame(Time = t_cont, Amplitude = x_cont)
+t_cont = np.linspace(0, 2 * np.pi, 500)
+x_cont = np.sin(t_cont)
 
 # Plot
-ggplot(df_cont, aes(x = Time, y = Amplitude)) +
-  geom_line() +
-  ggtitle("Continuous Signal: x(t) = sin(t)") +
-  theme_minimal() +
-  labs(x = "Time (t)", y = "Amplitude")
+plt.figure()
+plt.plot(t_cont, x_cont)
+plt.title("Continuous Signal: x(t) = sin(t)")
+plt.xlabel("Time (t)")
+plt.ylabel("Amplitude")
+plt.grid(True)
+plt.show()
 ```
 
 ### Visualization: Continuous vs. Discrete
-```{r discrete_plot, echo=FALSE, fig.cap="A discrete sine wave."}
+```{python discrete_plot, echo=FALSE, fig.cap="A discrete sine wave."}
+import numpy as np
+import matplotlib.pyplot as plt
+
 # Discrete Signal
-n_discrete <- 0:15
-t_discrete <- n_discrete * (2 * pi / 16)
-x_discrete <- sin(t_discrete)
-df_discrete <- data.frame(Time = t_discrete, Amplitude = x_discrete)
+n_discrete = np.arange(16)
+t_discrete = n_discrete * (2 * np.pi / 16)
+x_discrete = np.sin(t_discrete)
 
 # Plot
-ggplot(df_discrete, aes(x = Time, y = Amplitude)) +
-  geom_point(size = 3, color = "red") +
-  geom_segment(aes(xend = Time, yend = 0), linetype = "dashed") +
-  ggtitle("Discrete Signal: x[n] = sin(2πn/16)") +
-  theme_minimal() +
-  labs(x = "Sample (n)", y = "Amplitude")
+plt.figure()
+(markers, stemlines, baseline) = plt.stem(t_discrete, x_discrete, linefmt='--')
+plt.setp(markers, color='red')
+plt.title("Discrete Signal: x[n] = sin(2πn/16)")
+plt.xlabel("Sample (n)")
+plt.ylabel("Amplitude")
+plt.grid(True)
+plt.show()
 ```
 
 
@@ -166,18 +165,21 @@ $$
 $$
 
 ### The Rectangular Function: Visualization
-```{r rect_function_plot, echo=FALSE, fig.cap="The Rectangular Function"}
-rect_func <- function(t) {
-  return(ifelse(abs(t) <= 0.5, 1, 0))
-}
-t <- seq(-2, 2, length.out = 1000)
-rect_data <- data.frame(Time = t, Amplitude = rect_func(t))
+```{python rect_function_plot, echo=FALSE, fig.cap="The Rectangular Function"}
+import numpy as np
+import matplotlib.pyplot as plt
 
-ggplot(rect_data, aes(x = Time, y = Amplitude)) +
-  geom_line(size = 1) +
-  ggtitle("The Rectangular Function") +
-  theme_minimal() +
-  ylim(0, 1.2)
+def rect_func(t):
+  return np.where(np.abs(t) <= 0.5, 1, 0)
+
+t = np.linspace(-2, 2, 1000)
+rect_data = rect_func(t)
+
+plt.figure()
+plt.plot(t, rect_data)
+plt.title("The Rectangular Function")
+plt.ylim(0, 1.2)
+plt.show()
 ```
 
 
@@ -196,20 +198,19 @@ $$
 $$
 
 ### The Sinc Function: Visualization
-```{r sinc_function_plot, echo=FALSE, fig.cap="The Sinc Function"}
-sinc_func <- function(t) {
-  # Handle the t=0 case where the formula is undefined
-  result <- ifelse(t == 0, 1, sin(pi * t) / (pi * t))
-  return(result)
-}
-t_sinc <- seq(-5, 5, length.out = 2000)
-sinc_data <- data.frame(Time = t_sinc, Amplitude = sinc_func(t_sinc))
+```{python sinc_function_plot, echo=FALSE, fig.cap="The Sinc Function"}
+import numpy as np
+import matplotlib.pyplot as plt
 
-ggplot(sinc_data, aes(x = Time, y = Amplitude)) +
-  geom_line(size = 1) +
-  geom_hline(yintercept = 0, linetype="dashed") +
-  ggtitle("The Sinc Function") +
-  theme_minimal()
+t_sinc = np.linspace(-5, 5, 2000)
+# The numpy sinc function is normalized, so we need to adjust for that
+sinc_data = np.sinc(t_sinc)
+
+plt.figure()
+plt.plot(t_sinc, sinc_data)
+plt.axhline(0, color='grey', linestyle='--')
+plt.title("The Sinc Function")
+plt.show()
 ```
 
 
@@ -248,18 +249,19 @@ $$
 $$
 
 ### The Dirac Delta Function: Visualization
-```{r dirac_delta_plot, echo=FALSE, fig.cap="Conceptual visualization of the Dirac Delta function."}
-ggplot() +
-  geom_segment(aes(x = 0, y = 0, xend = 0, yend = 1),
-               arrow = arrow(length = unit(0.5, "cm")), size = 1.5) +
-  geom_hline(yintercept = 0) +
-  xlim(-2, 2) +
-  ylim(0, 1.2) +
-  ggtitle("The Dirac Delta Function δ(t)") +
-  xlab("t") +
-  ylab("") +
-  theme_minimal() +
-  theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+```{python dirac_delta_plot, echo=FALSE, fig.cap="Conceptual visualization of the Dirac Delta function."}
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.figure()
+plt.arrow(0, 0, 0, 1, head_width=0.2, head_length=0.15, fc='black', ec='black', length_includes_head=True)
+plt.axhline(0, color='black')
+plt.xlim(-2, 2)
+plt.ylim(0, 1.2)
+plt.title("The Dirac Delta Function δ(t)")
+plt.xlabel("t")
+plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
+plt.show()
 ```
 
 
@@ -296,20 +298,22 @@ $$
 - It is the mathematical model for the process of sampling.
 
 ### The Comb Function: Visualization
-```{r comb_function_plot, echo=FALSE, fig.cap="Conceptual visualization of the Comb function."}
-comb_data <- data.frame(x = -3:3)
+```{python comb_function_plot, echo=FALSE, fig.cap="Conceptual visualization of the Comb function."}
+import numpy as np
+import matplotlib.pyplot as plt
 
-ggplot(comb_data, aes(x=x)) +
-  geom_segment(aes(xend = x, y = 0, yend = 1),
-               arrow = arrow(length = unit(0.4, "cm")), size = 1) +
-  geom_hline(yintercept = 0) +
-  xlim(-4, 4) +
-  ylim(0, 1.2) +
-  ggtitle("The Comb Function") +
-  xlab("t") +
-  ylab("") +
-  theme_minimal() +
-  theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+x = np.arange(-3, 4)
+
+plt.figure()
+for val in x:
+    plt.arrow(val, 0, 0, 1, head_width=0.2, head_length=0.15, fc='black', ec='black', length_includes_head=True)
+plt.axhline(0, color='black')
+plt.xlim(-4, 4)
+plt.ylim(0, 1.2)
+plt.title("The Comb Function")
+plt.xlabel("t")
+plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
+plt.show()
 ```
 
 
@@ -341,51 +345,47 @@ Imagine a comb's teeth; each tooth is a delta function. When we multiply a conti
 
 ### Aliasing: Visualization Code
 
-```{r aliasing_code, echo=TRUE}
+```{python aliasing_code, echo=TRUE}
+import numpy as np
 # Define a high-frequency signal
-f_high <- 10 # Hz
-t <- seq(0, 1, length.out = 1000)
-signal_cont <- sin(2 * pi * f_high * t)
+f_high = 10 # Hz
+t = np.linspace(0, 1, 1000)
+signal_cont = np.sin(2 * np.pi * f_high * t)
 
 # Case 1: Adequate Sampling (fs > 2 * fmax)
-fs_good <- 25 # Sampling freq > 2 * 10
-t_good <- seq(0, 1, by = 1/fs_good)
-signal_good <- sin(2 * pi * f_high * t_good)
+fs_good = 25 # Sampling freq > 2 * 10
+t_good = np.arange(0, 1, 1/fs_good)
+signal_good = np.sin(2 * np.pi * f_high * t_good)
 
 # Case 2: Undersampling (fs < 2 * fmax)
-fs_bad <- 12 # Sampling freq < 2 * 10
-t_bad <- seq(0, 1, by = 1/fs_bad)
-signal_bad <- sin(2 * pi * f_high * t_bad)
+fs_bad = 12 # Sampling freq < 2 * 10
+t_bad = np.arange(0, 1, 1/fs_bad)
+signal_bad = np.sin(2 * np.pi * f_high * t_bad)
 # The aliased frequency will appear at |f_high - fs_bad| = |10 - 12| = 2 Hz
-aliased_signal_cont <- sin(2 * pi * 2 * t)
+aliased_signal_cont = np.sin(2 * np.pi * 2 * t)
 ```
 
 ### Aliasing: Adequate Sampling
 
-```{r aliasing_plot_good, echo=FALSE, fig.cap="A 10 Hz signal sampled at 25 Hz. The samples still capture the wave's shape."}
-df_cont <- data.frame(Time = t, Value = signal_cont)
-df_good <- data.frame(Time = t_good, Value = signal_good)
-
-ggplot() +
-  geom_line(data = df_cont, aes(x = Time, y = Value), color = "gray") +
-  geom_point(data = df_good, aes(x = Time, y = Value), color = "red", size = 3) +
-  ggtitle("Adequate Sampling (fs > 2*fmax)") +
-  theme_minimal()
+```{python aliasing_plot_good, echo=FALSE, fig.cap="A 10 Hz signal sampled at 25 Hz. The samples still capture the wave's shape."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.plot(t, signal_cont, color='gray')
+plt.plot(t_good, signal_good, 'ro')
+plt.title("Adequate Sampling (fs > 2*fmax)")
+plt.show()
 ```
 
 ### Aliasing: Undersampling
 
-```{r aliasing_plot_bad, echo=FALSE, fig.cap="A 10 Hz signal sampled at 12 Hz. The samples now trace a 2 Hz wave."}
-df_bad <- data.frame(Time = t_bad, Value = signal_bad)
-df_aliased <- data.frame(Time = t, Value = aliased_signal_cont)
-
-ggplot() +
-  geom_line(data = df_cont, aes(x = Time, y = Value), color = "gray", linetype = "dashed") +
-  geom_line(data = df_aliased, aes(x = Time, y = Value), color = "blue") +
-  geom_point(data = df_bad, aes(x = Time, y = Value), color = "red", size = 3) +
-  ggtitle("Undersampling (fs < 2*fmax)") +
-  labs(subtitle = "Original 10 Hz wave (gray) appears as a 2 Hz wave (blue)") +
-  theme_minimal()
+```{python aliasing_plot_bad, echo=FALSE, fig.cap="A 10 Hz signal sampled at 12 Hz. The samples now trace a 2 Hz wave."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.plot(t, signal_cont, color="gray", linestyle="dashed")
+plt.plot(t, aliased_signal_cont, color="blue")
+plt.plot(t_bad, signal_bad, "ro")
+plt.title("Undersampling (fs < 2*fmax)")
+plt.show()
 ```
 
 ### LSI Systems
@@ -530,17 +530,26 @@ This "flip, shift, multiply, integrate" process is the mechanical-graphical way 
 - We start with an input signal `x(t)` (a Rect function) and an impulse response `h(t)` (a triangle function).
 
 ### Convolution: Graphical Example Step 1 (cont.)
-```{r conv_viz_setup, echo=FALSE}
-x_func <- function(t) ifelse(t >= 0 & t <= 2, 1, 0)
-h_func <- function(t) ifelse(t >= 0 & t <= 1, t, ifelse(t > 1 & t <= 2, 2 - t, 0))
-t_viz <- seq(-1, 5, length.out=1000)
-df_x <- data.frame(t=t_viz, val=x_func(t_viz), type="x(t)")
-df_h <- data.frame(t=t_viz, val=h_func(t_viz), type="h(t)")
+```{python conv_viz_setup, echo=FALSE}
+import numpy as np
+import matplotlib.pyplot as plt
 
-ggplot() +
-  geom_line(data=df_x, aes(x=t, y=val, color=type)) +
-  geom_line(data=df_h, aes(x=t, y=val, color=type)) +
-  ggtitle("Input Signal and Impulse Response") + theme_minimal()
+def x_func(t):
+    return np.where((t >= 0) & (t <= 2), 1, 0)
+
+def h_func(t):
+    return np.piecewise(t, [(t >= 0) & (t <= 1), (t > 1) & (t <= 2)], [lambda t: t, lambda t: 2 - t])
+
+t_viz = np.linspace(-1, 5, 1000)
+x_val = x_func(t_viz)
+h_val = h_func(t_viz)
+
+plt.figure()
+plt.plot(t_viz, x_val, label='x(t)')
+plt.plot(t_viz, h_val, label='h(t)')
+plt.title("Input Signal and Impulse Response")
+plt.legend()
+plt.show()
 ```
 
 ### Convolution: Graphical Example Step 2
@@ -548,17 +557,21 @@ ggplot() +
 - The integral is `y(t) = ∫ x(τ) h(t - τ) dτ`. We plot for a specific time `t`, say `t=0.5`.
 
 ### Convolution: Graphical Example Step 2 (cont.)
-```{r conv_viz_flip, echo=FALSE}
-t_val <- 0.5
-h_flipped_shifted <- function(tau) h_func(t_val - tau)
-df_h_flip <- data.frame(t=t_viz, val=h_flipped_shifted(t_viz), type=paste0("h(",t_val,"-τ)"))
-df_prod <- data.frame(t=t_viz, val=x_func(t_viz) * h_flipped_shifted(t_viz), type="product")
+```{python conv_viz_flip, echo=FALSE}
+import numpy as np
+import matplotlib.pyplot as plt
 
-ggplot() +
-  geom_line(data=df_x, aes(x=t, y=val, color=type)) +
-  geom_line(data=df_h_flip, aes(x=t, y=val, color=type)) +
-  geom_area(data=df_prod, aes(x=t, y=val), fill="purple", alpha=0.5) +
-  ggtitle("Flipping, Shifting, and Multiplying") + theme_minimal()
+t_val = 0.5
+h_flipped_shifted = h_func(t_val - t_viz)
+product = x_func(t_viz) * h_flipped_shifted
+
+plt.figure()
+plt.plot(t_viz, x_func(t_viz), label='x(t)')
+plt.plot(t_viz, h_flipped_shifted, label=f'h({t_val} - τ)')
+plt.fill_between(t_viz, product, color='purple', alpha=0.5)
+plt.title("Flipping, Shifting, and Multiplying")
+plt.legend()
+plt.show()
 ```
 
 ### Convolution: Graphical Example Step 2 (cont.)
@@ -568,24 +581,18 @@ ggplot() +
 Let's convolve a noisy signal with a simple averaging kernel (a rect function) to smooth it out.
 
 ### Convolution Example: Denoising Code (cont.)
-```{r convolution_code, echo=TRUE}
+```{python convolution_code, echo=TRUE}
+import numpy as np
 # 1. Create a noisy signal
-t_conv <- seq(0, 10, length.out = 500)
-signal <- sin(t_conv) + 0.1 * cos(t_conv * 20) # Base signal + high-freq noise
-noise <- rnorm(500, mean = 0, sd = 0.2)
-noisy_signal <- signal + noise
-
-df_noisy <- data.frame(Time = t_conv, Value = noisy_signal, Type = "Noisy")
+t_conv = np.linspace(0, 10, 500)
+signal = np.sin(t_conv) + 0.1 * np.cos(t_conv * 20) # Base signal + high-freq noise
+noise = np.random.normal(0, 0.2, 500)
+noisy_signal = signal + noise
 
 # 2. Perform convolution in the discrete domain (moving average)
-# R's 'filter' function is a way to do 1D convolution
-kernel <- rep(1/11, 11) # A simple 11-point averaging kernel
-smoothed_signal <- stats::filter(noisy_signal, kernel, sides = 2)
+kernel = np.ones(11) / 11 # A simple 11-point averaging kernel
+smoothed_signal = np.convolve(noisy_signal, kernel, mode='same')
 
-df_smooth <- data.frame(Time = t_conv, Value = smoothed_signal, Type = "Smoothed")
-
-# Combine for plotting
-df_conv <- rbind(df_noisy, df_smooth)
 ```
 
 
@@ -596,12 +603,14 @@ Here we create a signal with some high-frequency noise. Then we define a simple 
 :::
 
 ### Convolution Example: Denoising Visualization
-```{r convolution_plot, echo=FALSE, fig.cap="A noisy signal before and after convolution with a smoothing kernel."}
-ggplot(df_conv, aes(x = Time, y = Value, color = Type)) +
-  geom_line(size = 1) +
-  ggtitle("Signal Denoising via Convolution") +
-  theme_minimal() +
-  scale_color_manual(values = c("Noisy" = "gray", "Smoothed" = "red"))
+```{python convolution_plot, echo=FALSE, fig.cap="A noisy signal before and after convolution with a smoothing kernel."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.plot(t_conv, noisy_signal, color="gray", label="Noisy")
+plt.plot(t_conv, smoothed_signal, color="red", label="Smoothed")
+plt.title("Signal Denoising via Convolution")
+plt.legend()
+plt.show()
 ```
 
 
@@ -682,21 +691,20 @@ Think of it as a prism for signals. A prism takes in white light (a complex sign
 :::
 
 ### FT Example: Sine Wave Code
-```{r ft_sine_code, echo=TRUE}
+```{python ft_sine_code, echo=TRUE}
+import numpy as np
 # Create a simple sine wave
-fs <- 100 # Sampling frequency
-t_ft <- seq(0, 1, length.out = fs)
-freq <- 5 # 5 Hz
-x_sine <- sin(2 * pi * freq * t_ft)
+fs = 100 # Sampling frequency
+t_ft = np.arange(0, 1, 1/fs)
+freq = 5 # 5 Hz
+x_sine = np.sin(2 * np.pi * freq * t_ft)
 
 # Calculate the Fast Fourier Transform (FFT)
-fft_result <- fft(x_sine)
-fft_magnitude <- Mod(fft_result)
+fft_result = np.fft.fft(x_sine)
+fft_magnitude = np.abs(fft_result)
 
 # Create frequency axis for plotting
-freq_axis <- seq(0, fs, length.out = fs)
-
-df_fft <- data.frame(Frequency = freq_axis, Magnitude = fft_magnitude)
+freq_axis = np.fft.fftfreq(len(t_ft), d=1/fs)
 ```
 
 
@@ -707,17 +715,16 @@ Here we create a pure 5 Hz sine wave. We then use R's `fft` function, which is a
 :::
 
 ### FT Example: Sine Wave Visualization
-```{r ft_sine_plot, echo=FALSE, fig.cap="Time domain and Frequency domain of a 5 Hz sine wave."}
-p_time <- ggplot(data.frame(Time=t_ft, Amplitude=x_sine), aes(x=Time, y=Amplitude)) +
-  geom_line() + ggtitle("Time Domain: 5 Hz Sine Wave")
-
-# Plot only the first half of the spectrum (due to symmetry)
-p_freq <- ggplot(df_fft[1:(fs/2), ], aes(x = Frequency, y = Magnitude)) +
-  geom_line() +
-  ggtitle("Frequency Domain (Magnitude)") +
-  labs(x = "Frequency (Hz)")
-
-p_time + p_freq
+```{python ft_sine_plot, echo=FALSE, fig.cap="Time domain and Frequency domain of a 5 Hz sine wave."}
+import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+ax1.plot(t_ft, x_sine)
+ax1.set_title("Time Domain: 5 Hz Sine Wave")
+ax2.plot(freq_axis, fft_magnitude)
+ax2.set_title("Frequency Domain (Magnitude)")
+ax2.set_xlabel("Frequency (Hz)")
+ax2.set_xlim(0, fs/2)
+plt.show()
 ```
 
 
@@ -750,34 +757,20 @@ Instead of temporal frequency, we now have spatial frequencies. `kx` represents 
 :::
 
 ### 2D FT Example: 2D Rect Code
-```{r 2d_ft_code, echo=TRUE}
+```{python 2d_ft_code, echo=TRUE}
+import numpy as np
 # Create a 2D Rect function (a white square on a black background)
-matrix_size <- 128
-img_matrix <- matrix(0, nrow = matrix_size, ncol = matrix_size)
-center <- matrix_size / 2
-width <- 16
-img_matrix[(center - width/2):(center + width/2), (center - width/2):(center + width/2)] <- 1
+matrix_size = 128
+img_matrix = np.zeros((matrix_size, matrix_size))
+center = matrix_size // 2
+width = 16
+img_matrix[center - width//2:center + width//2, center - width//2:center + width//2] = 1
 
 # Calculate the 2D FFT
-fft_2d_result <- fft(img_matrix)
+fft_2d_result = np.fft.fft2(img_matrix)
 
 # For visualization, we want to see the magnitude and shift the zero-frequency component to the center
-fft_shift <- function(mat) {
-  # Swaps quadrants of a matrix
-  rows <- nrow(mat)
-  cols <- ncol(mat)
-  r_mid <- floor(rows / 2)
-  c_mid <- floor(cols / 2)
-
-  quad1 <- mat[1:r_mid, 1:c_mid]
-  quad2 <- mat[1:r_mid, (c_mid + 1):cols]
-  quad3 <- mat[(r_mid + 1):rows, 1:c_mid]
-  quad4 <- mat[(r_mid + 1):rows, (c_mid + 1):cols]
-
-  rbind(cbind(quad4, quad3), cbind(quad2, quad1))
-}
-
-fft_magnitude_2d <- log(1 + Mod(fft_shift(fft_2d_result)))
+fft_magnitude_2d = np.log(1 + np.abs(np.fft.fftshift(fft_2d_result)))
 ```
 
 
@@ -788,22 +781,16 @@ We create a matrix representing a white square. We then compute its 2D FFT. A cr
 :::
 
 ### 2D FT Example: 2D Rect Visualization
-```{r 2d_ft_plot, echo=FALSE, fig.cap="A 2D Rect (left) and its 2D Fourier Transform magnitude (right), a 2D Sinc."}
-# Need to prep data for ggplot
-library(reshape2)
-df_img <- melt(img_matrix)
-colnames(df_img) <- c("Var1", "Var2", "value")
-p_img_2d <- ggplot(df_img, aes(x = Var1, y = Var2, fill = value)) +
-  geom_raster() + scale_fill_gradient(low = "black", high = "white") +
-  ggtitle("2D Rect Function") + theme_void() + guides(fill="none")
-
-df_fft_2d <- melt(fft_magnitude_2d)
-colnames(df_fft_2d) <- c("Var1", "Var2", "value")
-p_fft_2d <- ggplot(df_fft_2d, aes(x = Var1, y = Var2, fill = value)) +
-  geom_raster() + scale_fill_viridis_c() +
-  ggtitle("2D FT Magnitude (2D Sinc)") + theme_void() + guides(fill="none")
-
-p_img_2d + p_fft_2d
+```{python 2d_ft_plot, echo=FALSE, fig.cap="A 2D Rect (left) and its 2D Fourier Transform magnitude (right), a 2D Sinc."}
+import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+ax1.imshow(img_matrix, cmap='gray')
+ax1.set_title("2D Rect Function")
+ax1.axis('off')
+ax2.imshow(fft_magnitude_2d, cmap='viridis')
+ax2.set_title("2D FT Magnitude (2D Sinc)")
+ax2.axis('off')
+plt.show()
 ```
 
 
@@ -905,37 +892,36 @@ This is the noise of counting statistics. If you expect to detect an average of 
 :::
 
 ### Poisson Noise: Code Example
-```{r poisson_code, echo=TRUE}
+```{python poisson_code, echo=TRUE}
+import numpy as np
 # Generate data from a Poisson distribution
-mean_photons <- 25
-num_samples <- 10000
+mean_photons = 25
+num_samples = 10000
 
 # Use rpois to generate random deviates
-poisson_data <- rpois(num_samples, lambda = mean_photons)
-
-df_poisson <- data.frame(Counts = poisson_data)
+poisson_data = np.random.poisson(mean_photons, num_samples)
 
 # Calculate sample mean and variance
-sample_mean <- mean(poisson_data)
-sample_variance <- var(poisson_data)
+sample_mean = np.mean(poisson_data)
+sample_variance = np.var(poisson_data)
 ```
 
 
 
 ::: notes
-We use R's `rpois` function to simulate `r num_samples` measurements from a process with a mean of `r mean_photons` photons. We then calculate the mean and variance to check if they are approximately equal, as the theory predicts.
+We use python's `np.random.poisson` function to simulate `r py$num_samples` measurements from a process with a mean of `r py$mean_photons` photons. We then calculate the mean and variance to check if they are approximately equal, as the theory predicts.
 
 :::
 
 ### Poisson Noise: Visualization
-```{r poisson_plot, echo=FALSE, fig.cap="Histogram of samples from a Poisson distribution."}
-ggplot(df_poisson, aes(x = Counts)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", aes(y = ..density..)) +
-  ggtitle(paste0("Poisson Distribution (λ = ", mean_photons, ")")) +
-  labs(subtitle = paste0("Sample Mean ≈ ", round(sample_mean, 2),
-                         ", Sample Variance ≈ ", round(sample_variance, 2)),
-       x = "Photon Counts", y = "Density") +
-  theme_minimal()
+```{python poisson_plot, echo=FALSE, fig.cap="Histogram of samples from a Poisson distribution."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.hist(poisson_data, bins=range(10, 45), density=True, color='skyblue', ec='black')
+plt.title(f"Poisson Distribution (λ = {mean_photons})")
+plt.xlabel("Photon Counts")
+plt.ylabel("Density")
+plt.show()
 ```
 
 
@@ -962,32 +948,37 @@ This noise is additive and constant. It comes from the electronics in the imagin
 :::
 
 ### Gaussian Noise: Code Example
-```{r gaussian_code, echo=TRUE}
+```{python gaussian_code, echo=TRUE}
+import numpy as np
 # Generate data from a Gaussian distribution
-mean_signal <- 50
-noise_std_dev <- 10
-num_samples <- 10000
+mean_signal = 50
+noise_std_dev = 10
+num_samples = 10000
 
 # Use rnorm to generate random deviates
-gaussian_data <- rnorm(num_samples, mean = mean_signal, sd = noise_std_dev)
+gaussian_data = np.random.normal(mean_signal, noise_std_dev, num_samples)
 
-df_gaussian <- data.frame(Value = gaussian_data)
 ```
 
 
 
 ::: notes
-Here we use `rnorm` to simulate `r num_samples` measurements. The key difference is that we explicitly define both the mean and the standard deviation, as they are independent parameters.
+Here we use `np.random.normal` to simulate `r py$num_samples` measurements. The key difference is that we explicitly define both the mean and the standard deviation, as they are independent parameters.
 
 :::
 
 ### Gaussian Noise: Visualization
-```{r gaussian_plot, echo=FALSE, fig.cap="Histogram of samples from a Gaussian distribution."}
-ggplot(df_gaussian, aes(x = Value)) +
-  geom_histogram(bins = 50, fill = "salmon", color = "black", aes(y = ..density..)) +
-  stat_function(fun = dnorm, args = list(mean = mean_signal, sd = noise_std_dev), color = "blue", size = 1) +
-  ggtitle(paste0("Gaussian Distribution (μ = ", mean_signal, ", σ = ", noise_std_dev, ")")) +
-  theme_minimal()
+```{python gaussian_plot, echo=FALSE, fig.cap="Histogram of samples from a Gaussian distribution."}
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+plt.figure()
+plt.hist(gaussian_data, bins=50, density=True, color='salmon', ec='black')
+xmin, xmax = plt.xlim()
+x = np.linspace(xmin, xmax, 100)
+p = norm.pdf(x, mean_signal, noise_std_dev)
+plt.plot(x, p, 'b', linewidth=2)
+plt.title(f"Gaussian Distribution (μ = {mean_signal}, σ = {noise_std_dev})")
+plt.show()
 ```
 
 
@@ -1005,26 +996,29 @@ The histogram perfectly follows the classic bell curve shape, overlaid in blue. 
 
 ### Noise Appearance: Visualization Code
 
-```{r noise_appearance_code, echo=TRUE}
+```{python noise_appearance_code, echo=TRUE}
+import numpy as np
 # Create a signal that varies in brightness (a ramp)
-t_ramp <- 1:256
-signal_ramp <- t_ramp
+t_ramp = np.arange(1, 257)
+signal_ramp = t_ramp
 
 # Add Poisson noise (variance = mean)
-noise_poisson <- rpois(256, lambda = signal_ramp)
+noise_poisson = np.random.poisson(signal_ramp)
 
 # Add Gaussian noise (constant variance)
-noise_gaussian <- rnorm(256, mean = signal_ramp, sd = 10)
-
-df_ramp_p <- data.frame(Time = t_ramp, Value = noise_poisson, Type = "Poisson")
-df_ramp_g <- data.frame(Time = t_ramp, Value = noise_gaussian, Type = "Gaussian")
+noise_gaussian = np.random.normal(signal_ramp, 10)
 ```
 
 ### Noise Appearance: Visualization Plot
-```{r noise_appearance_plot, echo=FALSE, fig.cap="Comparison of Poisson and Gaussian noise on a ramp signal."}
-p_p <- ggplot(df_ramp_p, aes(x=Time, y=Value)) + geom_line() + ggtitle("Poisson Noise") + ylim(0,300)
-p_g <- ggplot(df_ramp_g, aes(x=Time, y=Value)) + geom_line() + ggtitle("Gaussian Noise") + ylim(0,300)
-p_p + p_g
+```{python noise_appearance_plot, echo=FALSE, fig.cap="Comparison of Poisson and Gaussian noise on a ramp signal."}
+import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+ax1.plot(t_ramp, noise_poisson)
+ax1.set_title("Poisson Noise")
+ax1.set_ylim(0, 300)
+ax2.plot(t_ramp, noise_gaussian)
+ax2.set_title("Gaussian Noise")
+plt.show()
 ```
 
 ### Noise Appearance: Visualization Plot (cont.)
@@ -1062,15 +1056,16 @@ While SNR tells you about the quality in one area, CNR tells you about your abil
 :::
 
 ### CNR: Visualization Code
-```{r cnr_code, echo=TRUE}
+```{python cnr_code, echo=TRUE}
+import numpy as np
 # Create two regions with different means but the same noise
-N_pixels <- 256 * 256
-img <- matrix(rnorm(N_pixels, mean = 50, sd = 20), nrow=256, ncol=256)
+N_pixels = 256 * 256
+img = np.random.normal(50, 20, (256, 256))
 
 # Create a signal region (A) and a background region (B)
-mean_A <- 60
-mean_B <- 50
-img[100:156, 100:156] <- rnorm(57*57, mean = mean_A, sd = 20)
+mean_A = 60
+mean_B = 50
+img[100:157, 100:157] = np.random.normal(mean_A, 20, (57, 57))
 ```
 
 
@@ -1081,15 +1076,13 @@ We create a noisy background image. Then, we insert a square patch in the middle
 :::
 
 ### CNR: Visualization Plot
-```{r cnr_plot, echo=FALSE, fig.cap="Image with a square of higher signal. Its detectability is determined by CNR."}
-df_cnr_img <- melt(img)
-colnames(df_cnr_img) <- c("Var1", "Var2", "value")
-ggplot(df_cnr_img, aes(x=Var1, y=Var2, fill=value)) +
-  geom_raster() +
-  scale_fill_viridis_c() +
-  theme_void() +
-  ggtitle(paste0("Can you see the square? (CNR ≈ ", round((mean_A - mean_B)/20, 2), ")")) +
-  guides(fill="none")
+```{python cnr_plot, echo=FALSE, fig.cap="Image with a square of higher signal. Its detectability is determined by CNR."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.imshow(img, cmap='viridis')
+plt.title(f"Can you see the square? (CNR ≈ {round((mean_A - mean_B)/20, 2)})")
+plt.axis('off')
+plt.show()
 ```
 
 
@@ -1123,34 +1116,43 @@ This is a very practical rule. If your calculated CNR for a lesion is only 1 or 
 
 ### Rose Criterion: Visualization Code
 
-```{r rose_criterion_code, echo=TRUE}
-create_cnr_image <- function(cnr) {
-  bg_mean <- 100
-  noise_sd <- 20
-  signal_mean <- bg_mean + cnr * noise_sd
+```{python rose_criterion_code, echo=TRUE}
+import numpy as np
+def create_cnr_image(cnr):
+  bg_mean = 100
+  noise_sd = 20
+  signal_mean = bg_mean + cnr * noise_sd
 
-  img <- matrix(rnorm(128*128, mean=bg_mean, sd=noise_sd), nrow=128, ncol=128)
+  img = np.random.normal(bg_mean, noise_sd, (128, 128))
 
   # Add a circular object in the center
-  x <- seq(-1, 1, length.out = 128)
-  coords <- expand.grid(x = x, y = x)
-  img[coords$x^2 + coords$y^2 < 0.3^2] <- rnorm(sum(coords$x^2 + coords$y^2 < 0.3^2), mean=signal_mean, sd=noise_sd)
+  x = np.linspace(-1, 1, 128)
+  y = np.linspace(-1, 1, 128)
+  xx, yy = np.meshgrid(x, y)
+  mask = xx**2 + yy**2 < 0.3**2
+  img[mask] = np.random.normal(signal_mean, noise_sd, np.sum(mask))
 
-  return(img)
-}
+  return img
 
-img_cnr1 <- create_cnr_image(1)
-img_cnr3 <- create_cnr_image(3)
-img_cnr5 <- create_cnr_image(5)
+img_cnr1 = create_cnr_image(1)
+img_cnr3 = create_cnr_image(3)
+img_cnr5 = create_cnr_image(5)
 ```
 
 ### Rose Criterion: Visualization Plots
-```{r rose_criterion_plots, echo=FALSE, fig.cap="Same object at CNR=1 (left), CNR=3 (middle), and CNR=5 (right)."}
-p1 <- ggplot(melt(img_cnr1), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 1") + guides(fill="none") + scale_fill_viridis_c()
-p3 <- ggplot(melt(img_cnr3), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 3") + guides(fill="none") + scale_fill_viridis_c()
-p5 <- ggplot(melt(img_cnr5), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("CNR = 5") + guides(fill="none") + scale_fill_viridis_c()
-
-p1 + p3 + p5
+```{python rose_criterion_plots, echo=FALSE, fig.cap="Same object at CNR=1 (left), CNR=3 (middle), and CNR=5 (right)."}
+import matplotlib.pyplot as plt
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
+ax1.imshow(img_cnr1, cmap='viridis')
+ax1.set_title("CNR = 1")
+ax1.axis('off')
+ax2.imshow(img_cnr3, cmap='viridis')
+ax2.set_title("CNR = 3")
+ax2.axis('off')
+ax3.imshow(img_cnr5, cmap='viridis')
+ax3.set_title("CNR = 5")
+ax3.axis('off')
+plt.show()
 ```
 
 ### Rose Criterion: Visualization Plots (cont.)
@@ -1203,34 +1205,31 @@ Think of "white light," which has all colors (frequencies) equally. "White noise
 
 ### NPS: Visualization Code
 
-```{r nps_code, echo=TRUE}
+```{python nps_code, echo=TRUE}
+import numpy as np
+from scipy import signal
 # Generate a 1D white noise signal
-white_noise <- rnorm(1024)
-nps_white <- Mod(fft(white_noise))^2 / length(white_noise)
+white_noise = np.random.normal(size=1024)
+nps_white = np.abs(np.fft.fft(white_noise))**2 / len(white_noise)
 
 # Generate colored noise by filtering white noise (e.g., a simple moving average)
-colored_noise <- stats::filter(white_noise, rep(1/5, 5), sides=2)
-# Remove NAs introduced by filter at the edges
-colored_noise <- colored_noise[!is.na(colored_noise)]
-nps_colored <- Mod(fft(colored_noise))^2 / length(colored_noise)
+kernel = np.ones(5)/5
+colored_noise = signal.convolve(white_noise, kernel, mode='same')
+nps_colored = np.abs(np.fft.fft(colored_noise))**2 / len(colored_noise)
 
-freq_axis_nps <- 1:length(nps_white)
-df_nps <- data.frame(
-  Frequency = freq_axis_nps,
-  White = nps_white,
-  Colored = c(nps_colored, rep(NA, length(nps_white) - length(nps_colored)))
-)
+freq_axis_nps = np.fft.fftfreq(len(nps_white))
 ```
 
 ### NPS: Visualization Plot
-```{r nps_plot, echo=FALSE, fig.cap="NPS of white noise (flat) vs. colored noise (low-pass)."}
-df_nps_melt <- melt(df_nps, id.vars="Frequency", variable.name="Type", value.name="Power")
-
-ggplot(df_nps_melt, aes(x=Frequency, y=Power, color=Type)) +
-  geom_line() +
-  ggtitle("Noise Power Spectrum (NPS)") +
-  xlim(0, length(nps_white) / 2) + # Show only first half of spectrum
-  theme_minimal()
+```{python nps_plot, echo=FALSE, fig.cap="NPS of white noise (flat) vs. colored noise (low-pass)."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.plot(freq_axis_nps, nps_white, label="White")
+plt.plot(freq_axis_nps, nps_colored, label="Colored")
+plt.title("Noise Power Spectrum (NPS)")
+plt.xlim(0, 0.5)
+plt.legend()
+plt.show()
 ```
 
 ### NPS: Visualization Plot (cont.)
@@ -1307,28 +1306,28 @@ Imagine you have a semi-transparent object. You shine a light through it from ma
 First, we need an object to "image." We will synthetically create a simplified version of the Shepp-Logan phantom, which is a standard test object in medical imaging.
 
 ### Creating a Phantom: Code (cont.)
-```{r phantom_code, echo=TRUE}
+```{python phantom_code, echo=TRUE}
+import numpy as np
 # Create a simple phantom: a large circle with smaller circles inside
-create_phantom <- function(n = 256) {
-  phantom <- matrix(0, nrow = n, ncol = n)
-  x <- seq(-1, 1, length.out = n)
-  y <- seq(-1, 1, length.out = n)
-  coords <- expand.grid(x = x, y = y)
+def create_phantom(n=256):
+    phantom = np.zeros((n, n))
+    x = np.linspace(-1, 1, n)
+    y = np.linspace(-1, 1, n)
+    xx, yy = np.meshgrid(x, y)
 
-  # Large background ellipse
-  phantom[coords$x^2 + coords$y^2 < 0.8^2] <- 0.5
+    # Large background ellipse
+    phantom[xx**2 + yy**2 < 0.8**2] = 0.5
 
-  # Two smaller high-density circles (e.g., bone)
-  phantom[(coords$x - 0.3)^2 + (coords$y - 0.2)^2 < 0.1^2] <- 1
-  phantom[(coords$x + 0.3)^2 + (coords$y - 0.2)^2 < 0.1^2] <- 1
+    # Two smaller high-density circles (e.g., bone)
+    phantom[(xx - 0.3)**2 + (yy - 0.2)**2 < 0.1**2] = 1
+    phantom[(xx + 0.3)**2 + (yy - 0.2)**2 < 0.1**2] = 1
 
-  # One smaller low-density circle (e.g., lesion)
-  phantom[(coords$x)^2 + (coords$y + 0.4)^2 < 0.2^2] <- 0.1
+    # One smaller low-density circle (e.g., lesion)
+    phantom[xx**2 + (yy + 0.4)**2 < 0.2**2] = 0.1
 
-  return(phantom)
-}
+    return phantom
 
-phantom_image <- create_phantom()
+phantom_image = create_phantom()
 ```
 
 
@@ -1339,16 +1338,13 @@ We are not loading any data. Instead, we write a function that generates a 2D ma
 :::
 
 ### Creating a Phantom: Visualization
-```{r phantom_plot, echo=FALSE, fig.cap="A simple, synthetically generated Shepp-Logan style phantom."}
-df_phantom <- melt(phantom_image)
-colnames(df_phantom) <- c("Var1", "Var2", "value")
-ggplot(df_phantom, aes(x=Var1, y=Var2, fill=value)) +
-  geom_raster() +
-  scale_fill_viridis_c(option = "cividis") +
-  theme_void() +
-  ggtitle("Synthetic Phantom Image") +
-  guides(fill="none") +
-  coord_fixed()
+```{python phantom_plot, echo=FALSE, fig.cap="A simple, synthetically generated Shepp-Logan style phantom."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.imshow(phantom_image, cmap='cividis')
+plt.title("Synthetic Phantom Image")
+plt.axis('off')
+plt.show()
 ```
 
 
@@ -1378,31 +1374,16 @@ This equation looks complex, but it's just a line integral. For a fixed angle `�
 We can't do a true continuous Radon Transform, but we can simulate it for a few discrete angles by rotating our phantom image and summing the columns.
 
 ### Simulating Projections: Code (cont.)
-```{r projection_code, echo=TRUE}
+```{python projection_code, echo=TRUE}
+from scipy.ndimage import rotate
+import numpy as np
 # Simulate projections at a few angles
-angles <- seq(0, 179, by = 45)
-projections <- list()
+angles = np.arange(0, 180, 45)
+projections = []
 
-# Convert the matrix to a magick image object once
-# magick expects a 3D array (height, width, channels), so we reshape the 2D matrix
-phantom_array <- array(phantom_image, dim = c(nrow(phantom_image), ncol(phantom_image), 1))
-phantom_magick <- image_read(phantom_array)
-
-for (i in 1:length(angles)) {
-  # `magick` is used for rotation
-  img_rot <- image_rotate(phantom_magick, angles[i])
-
-  # Crop the image back to the original dimensions to handle resizing during rotation
-  geom_string <- paste0(nrow(phantom_image), "x", ncol(phantom_image), "+0+0^")
-  img_rot_cropped <- image_crop(img_rot, geom_string, gravity = "center")
-
-  # Extract the pixel data back into a matrix
-  rot_matrix <- as.numeric(image_data(img_rot_cropped, channels = "gray"))
-  dim(rot_matrix) <- dim(phantom_image)
-
-  # Sum the columns to get the 1D projection
-  projections[[i]] <- colSums(rot_matrix)
-}
+for angle in angles:
+    rot_image = rotate(phantom_image, angle, reshape=False)
+    projections.append(rot_image.sum(axis=0))
 ```
 
 
@@ -1413,22 +1394,14 @@ Here, we use a helper library to rotate our phantom image to different angles (0
 :::
 
 ### Simulating Projections: Visualization
-```{r projection_plot, echo=FALSE, fig.cap="1D projections of the phantom at different angles."}
-df_proj <- data.frame()
-for (i in 1:length(angles)) {
-  temp_df <- data.frame(
-    Position = 1:length(projections[[i]]),
-    Value = projections[[i]],
-    Angle = as.factor(angles[i])
-  )
-  df_proj <- rbind(df_proj, temp_df)
-}
-
-ggplot(df_proj, aes(x = Position, y = Value, color = Angle)) +
-  geom_line(size=1) +
-  facet_wrap(~Angle, ncol = 2, scales="free_y") +
-  ggtitle("1D Projections at Different Angles") +
-  theme_minimal()
+```{python projection_plot, echo=FALSE, fig.cap="1D projections of the phantom at different angles."}
+import matplotlib.pyplot as plt
+fig, axes = plt.subplots(2, 2, figsize=(10, 8), sharex=True, sharey=True)
+for i, ax in enumerate(axes.flat):
+    ax.plot(projections[i])
+    ax.set_title(f"Angle = {angles[i]}")
+fig.suptitle("1D Projections at Different Angles")
+plt.show()
 ```
 
 
@@ -1457,23 +1430,11 @@ The sinogram is the raw data of a CT scanner. It's the domain where the measurem
 Let's generate a more complete sinogram with more angles to get a better visual.
 
 ### Sinogram Visualization: Code (cont.)
-```{r sinogram_code, echo=TRUE}
-# We'll use a package that has a Radon transform function for a better sinogram
-# Let's try to find one, otherwise we'll generate a fake one for visualization.
-# After a quick check, there isn't a simple, dependency-free one.
-# So, we generate a representative synthetic sinogram.
-
-n_angles <- 180
-n_detectors <- 256
-sino_matrix <- matrix(0, nrow = n_angles, ncol = n_detectors)
-s_vals <- seq(-1, 1, length.out=n_detectors)
-theta_vals <- seq(0, pi, length.out=n_angles)
-
-# Simulate the sinsusoids from the three main objects
-# Parameters are tweaked to look like a real sinogram of our phantom
-sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) 10*exp(-( (s - 0.3*sin(t+pi/4))^2)/0.01) )
-sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) 10*exp(-( (s + 0.3*sin(t+pi/4))^2)/0.01) )
-sino_matrix <- sino_matrix + outer(theta_vals, s_vals, function(t,s) -5*exp(-( (s - 0.4*cos(t))^2)/0.04) )
+```{python sinogram_code, echo=TRUE}
+from skimage.transform import radon
+# Using a proper radon transform function for a better sinogram
+theta = np.linspace(0., 180., max(phantom_image.shape), endpoint=False)
+sinogram = radon(phantom_image, theta=theta, circle=True)
 ```
 
 
@@ -1484,16 +1445,14 @@ Since performing a full, accurate Radon transform is complex, we are generating 
 :::
 
 ### Sinogram Visualization: Plot
-```{r sinogram_plot, echo=FALSE, fig.cap="A synthetic sinogram."}
-df_sino <- melt(sino_matrix)
-colnames(df_sino) <- c("Angle", "Detector", "Value")
-
-ggplot(df_sino, aes(x = Detector, y = Angle, fill = Value)) +
-  geom_raster() +
-  scale_fill_viridis_c() +
-  ggtitle("Synthetic Sinogram") +
-  labs(y = "Angle (theta)", x = "Detector Position (s)") +
-  theme_minimal()
+```{python sinogram_plot, echo=FALSE, fig.cap="A synthetic sinogram."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.imshow(sinogram, cmap='viridis', extent=(0, 180, 0, sinogram.shape[0]), aspect='auto')
+plt.title("Sinogram")
+plt.xlabel("Angle (theta)")
+plt.ylabel("Detector Position (s)")
+plt.show()
 ```
 
 
@@ -1521,23 +1480,22 @@ This is a profound and powerful link. It connects the 1D measurements we can act
 
 ### Fourier Slice Theorem: Conceptual Diagram
 
-```{r fst_diagram, echo=FALSE, fig.cap="Illustration of the Fourier Slice Theorem."}
-# Create a representation of a 2D Fourier space
-k_space <- expand.grid(kx = seq(-1, 1, by=0.1), ky = seq(-1, 1, by=0.1))
+```{python fst_diagram, echo=FALSE, fig.cap="Illustration of the Fourier Slice Theorem."}
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Define a slice at a 30-degree angle
-angle_rad <- 30 * pi / 180
-slice <- data.frame(kx = seq(-1, 1, length.out=100) * cos(angle_rad),
-                    ky = seq(-1, 1, length.out=100) * sin(angle_rad))
+k_space = np.zeros((10, 10))
+angle_rad = 30 * np.pi / 180
+kx = np.linspace(-5, 5, 10)
+ky = kx * np.tan(angle_rad)
 
-ggplot() +
-  geom_tile(data = k_space, aes(x=kx, y=ky), fill="gray80", color="white") +
-  geom_line(data=slice, aes(x=kx, y=ky), color="red", size=2) +
-  labs(title="Fourier Slice Theorem",
-       subtitle="The 1D FT of a projection at angle θ... is a slice through the 2D FT at the same angle.",
-       x="kx", y="ky") +
-  coord_fixed() +
-  theme_minimal()
+plt.figure()
+plt.imshow(k_space, cmap='gray', extent=[-5, 5, -5, 5])
+plt.plot(kx, ky, 'r', linewidth=4)
+plt.title("Fourier Slice Theorem")
+plt.xlabel("kx")
+plt.ylabel("ky")
+plt.show()
 ```
 ### Simple Backprojection: The Intuition
 
@@ -1573,21 +1531,13 @@ The smearing process intrinsically adds a blur. Each point in the original objec
 Let's simulate backprojecting just our two projections at 0 and 90 degrees to see the smearing.
 
 ### Backprojection: Visualization Code (cont.)
-```{r backprojection_code, echo=TRUE}
-recon_size <- length(projections[[1]])
-recon_image <- matrix(0, nrow = recon_size, ncol = recon_size)
-
-# Backproject the 0-degree projection (vertical smearing)
-proj_0 <- projections[[which(angles == 0)]]
-for (i in 1:recon_size) {
-  recon_image[, i] <- recon_image[, i] + proj_0
-}
-
-# Backproject the 90-degree projection (horizontal smearing)
-proj_90 <- projections[[which(angles == 90)]]
-for (i in 1:recon_size) {
-  recon_image[i, ] <- recon_image[i, ] + proj_90
-}
+```{python backprojection_code, echo=TRUE}
+from skimage.transform import iradon
+# We'll use a proper inverse radon transform for a better visualization
+# Using the sinogram from the 0 and 90 degree projections
+theta_small = np.arange(0, 180, 90)
+sinogram_small = radon(phantom_image, theta=theta_small, circle=True)
+recon_simple = iradon(sinogram_small, theta=theta_small, filter_name=None)
 ```
 
 
@@ -1598,15 +1548,13 @@ We start with a blank image. First, we take the 0-degree projection and add its 
 :::
 
 ### Backprojection: Visualization Plot
-```{r backprojection_plot, echo=FALSE, fig.cap="Simple backprojection of just two angles, showing the characteristic smearing."}
-df_recon <- melt(recon_image)
-colnames(df_recon) <- c("Var1", "Var2", "value")
-ggplot(df_recon, aes(x=Var1, y=Var2, fill=value)) +
-  geom_raster() +
-  scale_fill_viridis_c() +
-  theme_void() +
-  ggtitle("Simple Backprojection (2 Angles)") +
-  coord_fixed()
+```{python backprojection_plot, echo=FALSE, fig.cap="Simple backprojection of just two angles, showing the characteristic smearing."}
+import matplotlib.pyplot as plt
+plt.figure()
+plt.imshow(recon_simple, cmap='viridis')
+plt.title("Simple Backprojection (2 Angles)")
+plt.axis('off')
+plt.show()
 ```
 
 
@@ -1634,17 +1582,17 @@ This is the key insight. Simple backprojection gets the low-frequency informatio
 :::
 
 ### The Ramp Filter: Visualization
-```{r ramp_filter_plot, echo=FALSE, fig.cap="The Ramp Filter in the frequency domain."}
-k <- seq(-1, 1, length.out = 1000)
-ramp_filter <- abs(k)
-df_ramp <- data.frame(Frequency = k, Value = ramp_filter)
-
-ggplot(df_ramp, aes(x = Frequency, y = Value)) +
-  geom_line(size = 1.5, color = "blue") +
-  ggtitle("The |k| Ramp Filter") +
-  xlab("Spatial Frequency (k)") +
-  ylab("Filter Magnitude") +
-  theme_minimal()
+```{python ramp_filter_plot, echo=FALSE, fig.cap="The Ramp Filter in the frequency domain."}
+import numpy as np
+import matplotlib.pyplot as plt
+k = np.linspace(-1, 1, 1000)
+ramp_filter = np.abs(k)
+plt.figure()
+plt.plot(k, ramp_filter, 'b', linewidth=2)
+plt.title("The |k| Ramp Filter")
+plt.xlabel("Spatial Frequency (k)")
+plt.ylabel("Filter Magnitude")
+plt.show()
 ```
 
 ### The Ramp Filter: Visualization (cont.)
@@ -1806,31 +1754,29 @@ This is a critical concept. The center of k-space contains the low-frequency inf
 Let's use our phantom image to simulate what happens when we manipulate k-space. We'll take the 2D FT of our phantom to get its k-space, then try filtering it.
 
 ### K-Space Filtering: Code (cont.)
-```{r kspace_filter_code, echo=TRUE}
+```{python kspace_filter_code, echo=TRUE}
+import numpy as np
 # We already have our phantom image and its 2D FT from Module 1 & 3
 # Let's re-calculate k-space (the shifted FT) for clarity
-kspace_full <- fft_shift(fft(phantom_image))
+kspace_full = np.fft.fftshift(np.fft.fft2(phantom_image))
 
 # Create a low-pass filter (keep the center, zero out the periphery)
-center_fraction <- 0.2
-kspace_lowpass <- kspace_full
-rows <- nrow(kspace_lowpass)
-cols <- ncol(kspace_lowpass)
-r_mid <- floor(rows/2)
-c_mid <- floor(cols/2)
-r_keep <- floor(rows * center_fraction / 2)
-c_keep <- floor(cols * center_fraction / 2)
-mask_low <- matrix(0, rows, cols)
-mask_low[(r_mid-r_keep):(r_mid+r_keep), (c_mid-c_keep):(c_mid+c_keep)] <- 1
-kspace_lowpass <- kspace_lowpass * mask_low
+center_fraction = 0.2
+rows, cols = kspace_full.shape
+r_mid, c_mid = rows // 2, cols // 2
+r_keep = int(rows * center_fraction / 2)
+c_keep = int(cols * center_fraction / 2)
+mask_low = np.zeros_like(kspace_full)
+mask_low[r_mid-r_keep:r_mid+r_keep, c_mid-c_keep:c_mid+c_keep] = 1
+kspace_lowpass = kspace_full * mask_low
 
 # Create a high-pass filter (zero out the center, keep the periphery)
-kspace_highpass <- kspace_full * (1 - mask_low)
+kspace_highpass = kspace_full * (1 - mask_low)
 
 # Inverse FFT to get the images back
 # Remember to shift back before inverse FFT!
-img_lowpass <- Mod(fft(fft_shift(kspace_lowpass), inverse = TRUE))
-img_highpass <- Mod(fft(fft_shift(kspace_highpass), inverse = TRUE))
+img_lowpass = np.abs(np.fft.ifft2(np.fft.ifftshift(kspace_lowpass)))
+img_highpass = np.abs(np.fft.ifft2(np.fft.ifftshift(kspace_highpass)))
 ```
 
 
@@ -1841,14 +1787,19 @@ Here we calculate the k-space of our phantom. We create a mask to isolate the ce
 :::
 
 ### K-Space Filtering: Visualization
-```{r kspace_filter_plot, echo=FALSE, fig.cap="Effect of low-pass (center) and high-pass (right) filtering in k-space."}
-p_orig <- ggplot(melt(phantom_image), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("Original") + guides(fill="none") + scale_fill_viridis_c(option="cividis")
-
-p_low <- ggplot(melt(img_lowpass), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("Low-Pass (Blur)") + guides(fill="none") + scale_fill_viridis_c(option="cividis")
-
-p_high <- ggplot(melt(img_highpass), aes(x=Var1, y=Var2, fill=value)) + geom_raster() + theme_void() + ggtitle("High-Pass (Edges)") + guides(fill="none") + scale_fill_viridis_c(option="cividis")
-
-p_orig + p_low + p_high
+```{python kspace_filter_plot, echo=FALSE, fig.cap="Effect of low-pass (center) and high-pass (right) filtering in k-space."}
+import matplotlib.pyplot as plt
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
+ax1.imshow(phantom_image, cmap='cividis')
+ax1.set_title("Original")
+ax1.axis('off')
+ax2.imshow(img_lowpass, cmap='cividis')
+ax2.set_title("Low-Pass (Blur)")
+ax2.axis('off')
+ax3.imshow(img_highpass, cmap='cividis')
+ax3.set_title("High-Pass (Edges)")
+ax3.axis('off')
+plt.show()
 ```
 
 
@@ -1906,27 +1857,29 @@ This "delay and sum" process is a form of spatial filtering. It allows the ultra
 
 ### Beamforming: Conceptual Diagram
 
-```{r beamforming_diagram, echo=FALSE, fig.cap="Diagram of delay-and-sum beamforming to focus a wave."}
-elements <- data.frame(x = seq(-2, 2, by=1), y=0)
-focal_point <- data.frame(x=0, y=-4)
+```{python beamforming_diagram, echo=FALSE, fig.cap="Diagram of delay-and-sum beamforming to focus a wave."}
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 
-# Create arcs representing wavefronts
-wavefronts <- data.frame()
-for (i in 1:nrow(elements)) {
-  dist <- sqrt((elements$x[i] - focal_point$x)^2 + (elements$y[i] - focal_point$y)^2)
-  delay <- max(sqrt((elements$x - focal_point$x)^2 + (elements$y - focal_point$y)^2)) - dist
-  for(r in seq(0.5, 4, by=0.5)) {
-    wavefronts <- rbind(wavefronts, data.frame(x0=elements$x[i], y0=elements$y[i], r=r, delay=delay))
-  }
-}
+elements = np.array([[-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0]])
+focal_point = np.array([0, -4])
 
-ggplot() +
-  geom_point(data=elements, aes(x=x, y=y), size=5, shape=22, fill="blue") +
-  geom_point(data=focal_point, aes(x=x, y=y), size=5, color="red", shape=8) +
-  ggforce::geom_circle(data=wavefronts, aes(x0=x0, y0=y0, r=r), color="gray") +
-  coord_fixed(ylim=c(-5,1)) +
-  theme_void() +
-  ggtitle("Ultrasound Beamforming", subtitle="Outer elements fire earlier to create a focused wavefront.")
+fig, ax = plt.subplots()
+ax.scatter(elements[:, 0], elements[:, 1], s=100, marker='s', c='blue')
+ax.scatter(focal_point[0], focal_point[1], s=100, marker='*', c='red')
+
+for el in elements:
+    dist = np.linalg.norm(el - focal_point)
+    for r in np.arange(0.5, 5.5, 0.5):
+        ax.add_patch(Circle(el, r, fill=False, color='gray'))
+
+ax.set_aspect('equal', adjustable='box')
+ax.set_xlim(-5, 5)
+ax.set_ylim(-5, 1)
+ax.set_title("Ultrasound Beamforming")
+ax.axis('off')
+plt.show()
 ```
 ### Modern Topics: Compressed Sensing
 
@@ -1943,18 +1896,25 @@ Compressed Sensing (CS) has had a huge impact on MRI. It allows us to intentiona
 :::
 
 ### Sparsity: Conceptual Diagram
-```{r sparsity_diagram, echo=FALSE, fig.cap="A non-sparse signal (left) and a sparse signal (right)."}
+```{python sparsity_diagram, echo=FALSE, fig.cap="A non-sparse signal (left) and a sparse signal (right)."}
+import numpy as np
+import matplotlib.pyplot as plt
+
 # Non-sparse signal (e.g., sine wave)
-df_dense <- data.frame(x=1:100, y=sin(seq(0,10,length.out=100)))
+x_dense = np.linspace(0, 10, 100)
+y_dense = np.sin(x_dense)
 
 # Sparse signal (e.g., a few spikes)
-df_sparse <- data.frame(x=1:100, y=0)
-df_sparse$y[c(10, 30, 80)] <- c(1, -0.8, 0.9)
+x_sparse = np.arange(100)
+y_sparse = np.zeros(100)
+y_sparse[[10, 30, 80]] = [1, -0.8, 0.9]
 
-p_d <- ggplot(df_dense, aes(x=x, y=y)) + geom_line() + ggtitle("Non-Sparse Signal")
-p_s <- ggplot(df_sparse, aes(x=x, y=y)) + geom_bar(stat="identity") + ggtitle("Sparse Signal")
-
-p_d + p_s
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+ax1.plot(x_dense, y_dense)
+ax1.set_title("Non-Sparse Signal")
+ax2.stem(x_sparse, y_sparse)
+ax2.set_title("Sparse Signal")
+plt.show()
 ```
 
 ### Sparsity: Conceptual Diagram (cont.)
@@ -1996,26 +1956,32 @@ The field is moving incredibly quickly, but the core mathematical operations ins
 :::
 
 ### CNN Architecture: Conceptual Diagram
-```{r cnn_diagram, echo=FALSE, fig.cap="A simplified conceptual diagram of a Convolutional Neural Network (CNN) for image reconstruction."}
-# Define the layers of the CNN
-layers <- data.frame(
-  x = c(1, 2, 3, 4, 5, 6),
-  y = c(2, 2, 2, 2, 2, 2),
-  label = c("Input\n(Undersampled\nImage)", "Conv + ReLU", "Conv + ReLU", "...", "Final Conv", "Output\n(Reconstructed\nImage)"),
-  size = c(10, 8, 8, 2, 8, 10),
-  color = c("blue", "red", "red", "white", "red", "green")
-)
+```{python cnn_diagram, echo=FALSE, fig.cap="A simplified conceptual diagram of a Convolutional Neural Network (CNN) for image reconstruction."}
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
-# Create the plot
-ggplot(layers, aes(x = x, y = y, label = label)) +
-  geom_point(aes(size = size, color = color), shape = 15) + # Use squares for layers
-  geom_text(vjust = 2.5, size = 3) +
-  geom_segment(data = data.frame(x = 1:5, xend = 2:6), aes(x = x, y = 2, xend = xend, yend = 2), arrow = arrow(length = unit(0.3, "cm")), inherit.aes = FALSE) +
-  scale_size_continuous(range = c(20, 40)) +
-  theme_void() +
-  theme(legend.position = "none") +
-  ggtitle("Basic CNN Structure for Image Reconstruction")
+fig, ax = plt.subplots(figsize=(10, 4))
 
+layers = [
+    ("Input\n(Undersampled\nImage)", "blue"),
+    ("Conv + ReLU", "red"),
+    ("Conv + ReLU", "red"),
+    ("...", "white"),
+    ("Final Conv", "red"),
+    ("Output\n(Reconstructed\nImage)", "green")
+]
+
+for i, (label, color) in enumerate(layers):
+    ax.add_patch(Rectangle((i, 1.5), 0.8, 1, facecolor=color, edgecolor='black'))
+    ax.text(i + 0.4, 1, label, ha='center', va='top', fontsize=8)
+    if i < len(layers) - 1:
+        plt.arrow(i + 0.8, 2, 0.2, 0, head_width=0.1, head_length=0.1, fc='black', ec='black')
+
+ax.set_xlim(0, len(layers))
+ax.set_ylim(0, 4)
+ax.axis('off')
+ax.set_title("Basic CNN Structure for Image Reconstruction")
+plt.show()
 ```
 
 ### CNN Architecture: Conceptual Diagram (cont.)
