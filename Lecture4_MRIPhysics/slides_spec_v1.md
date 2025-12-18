@@ -1,6 +1,6 @@
 Role: You are a Professor of Medical Physics and an expert in MRI technology.
-Task: Create a complete R Markdown (.Rmd) file that compiles into a Microsoft PowerPoint presentation (output: IntroductionToMedicalPhysics/Lecture4_MRIPhysics/MRI_Physics_I.pptx).
-Content Source: Use the "IntroductionToMedicalPhysics/Lecture4_MRIPhysics/MRI_Physics_I.md" file and the slide-by-slide outline defined therein. You must cover the material chronologically, from the hardware basics to the quantum mechanics of spin and Boltzmann polarization.
+Task: Create a complete R Markdown (.Rmd) file that compiles into a Microsoft PowerPoint presentation (output: MRI_Physics_I.pptx).
+Content Source: Use the "MRI_Physics_I.md" file and the slide-by-slide outline defined therein. You must cover the material chronologically, from the hardware basics to the quantum mechanics of spin and Boltzmann polarization.
 Design & Code Requirements:
 1. YAML Header: Set the output to powerpoint_presentation.
 2. Slide Structure: For each slide, include:
@@ -92,9 +92,8 @@ Technical Blueprint for Graphics (R/ggplot2 & Base R)
     ◦ Bar 2 (Spin Up): Height = 500,003.
     ◦ Zoom/Inset: Since the difference is invisible at scale, create a second "Zoomed In" plot focusing purely on the top of the bars to reveal the tiny excess (the "Net Magnetization").
 
-Based on the video transcript "How MRI Works - Part 1," which focuses exclusively on Nuclear Magnetic Resonance (NMR) physics rather than image reconstruction or tomography, I have adapted the outline to fit the actual source material.
 
-Here is the **Detailed Outline** aligned with the physics covered in your source.
+Here is the **Detailed Outline** aligned with the physics covered in the source.
 
 ***
 
