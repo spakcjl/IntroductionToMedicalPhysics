@@ -1930,7 +1930,7 @@ sparsity_diagram_fig
 
 
 ::: notes
-Think back to our convolution examples. We designed a simple averaging filter for denoising. A CNN might learn thousands of different, complex filter shapes that are perfectly optimized for removing a specific type of noise from a CT image, or for highlighting the texture of a tumor. They are essentially "learned filters."
+Think back to our convolution examples. We designed a simple averaging filter for denoising. A CNN might learn thousands of different, complex filter shapes that are perfectly optimized for a specific type of noise from a CT image, or for highlighting the texture of a tumor. They are essentially "learned filters."
 
 :::
 
