@@ -14,13 +14,23 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 # Load necessary packages
 library(reticulate)
 
-# Configure reticulate to use the system's default Python
-# This avoids issues with virtual environments in this context.
+# Configure reticulate to use the project's virtual environment Python
+# This ensures that packages installed in .venv are available.
+venv_path <- file.path(getwd(), "..", ".venv", "bin", "python3")
+if (!file.exists(venv_path)) {
+  # Try relative to root if getwd() is already root
+  venv_path <- file.path(getwd(), ".venv", "bin", "python3")
+}
+
 tryCatch({
-  use_python(Sys.which("python3"), required = TRUE)
+  use_python(venv_path, required = TRUE)
 }, error = function(e) {
-  message("Python3 not found or reticulate failed. Python chunks will not work.")
-  message(e)
+  message("Project virtual environment Python not found. Falling back to system Python.")
+  tryCatch({
+    use_python(Sys.which("python3"), required = TRUE)
+  }, error = function(e2) {
+    message("Python3 not found. Python chunks will not work.")
+  })
 })
 ```
 
