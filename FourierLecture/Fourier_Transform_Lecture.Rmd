@@ -1,0 +1,524 @@
+---
+title: "The Fourier Transform in Medical Imaging"
+subtitle: "From Principles to Practice"
+author: "Graduate Medical Physics Program"
+date: "`r Sys.Date()`"
+output:
+  powerpoint_presentation:
+    slide_level: 2
+---
+
+```{r setup, include=FALSE}
+# It's a good practice to set up the environment in the first chunk.
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# Load necessary R packages
+library(reticulate)
+
+# Configure reticulate to use the system's default Python
+tryCatch({
+  use_python(Sys.which("python3"), required = TRUE)
+}, error = function(e) {
+  message("Python3 not found or reticulate failed. Python chunks will not work.")
+  message(e)
+})
+```
+
+## Module 1: The Foundation
+
+### Intuition First: The Musical Chord
+
+::: {.notes}
+"Good morning, everyone. Welcome to what is arguably the most important mathematical concept in medical imaging: The Fourier Transform.
+
+I want to start by asking you to close your eyes for a second. Imagine I am sitting at a grand piano. I strike three keys simultaneously—a C, an E, and a G. You hear a single, rich sound—a chord. Your ear doesn't need to do any calculations to understand this. Instantly, your brain processes that complex pressure wave hitting your eardrum and breaks it down: you hear the bass of the C, the harmony of the E, and the treble of the G.
+
+Open your eyes. What your ear just did is exactly what we need to do in MRI."
+:::
+
+---
+
+### The Concept: Decomposition
+
+- Signals (sound, light, MR echoes) are often composites.
+- Imagine a C-Major chord: one sound, but composed of three distinct notes (C, E, G).
+- The Fourier Transform is the mathematical "ear" that identifies the constituent frequencies and their amplitudes.
+
+---
+
+### Visual Aid: Prism Analogy
+
+- A prism splits white light into a rainbow.
+- The Fourier Transform acts like a prism, splitting a complex signal into its simple frequency components.
+
+::: {.notes}
+"In Magnetic Resonance Imaging, we do not take a picture of the brain. We cannot simply 'photograph' protons. Instead, we listen to them. We record the 'musical chord' sung by the hydrogen atoms in your body. This signal is a complex, jumbled mess of radio waves.
+
+The Fourier Transform is the mathematical machine that acts like your ear. It takes that complex signal and unmixes it. It tells us: 'This much signal came from the left ear, and this much came from the nose.' It acts like a prism, splitting the white light of the raw data into the color spectrum of the final image. Without Fourier, MRI is just a noisy radio recording. With it, it is a diagnostic miracle."
+:::
+
+---
+
+### Python Code: Waveform Decomposition
+
+```{python waveform_decomposition, echo=TRUE}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Time base
+t = np.linspace(0, 2 * np.pi, 500)
+# Frequencies
+f1 = 1
+f2 = 1.5
+f3 = 2
+
+# Individual sine waves
+wave1 = np.sin(f1 * t)
+wave2 = 0.7 * np.sin(f2 * t)
+wave3 = 0.5 * np.sin(f3 * t)
+
+# Summed wave
+summed_wave = wave1 + wave2 + wave3
+
+# Plotting
+fig, axs = plt.subplots(4, 1, figsize=(10, 8), sharex=True)
+
+# Plot individual waves
+axs[0].plot(t, wave1, 'r', label=f'Frequency = {f1}')
+axs[0].legend()
+axs[1].plot(t, wave2, 'g', label=f'Frequency = {f2}')
+axs[1].legend()
+axs[2].plot(t, wave3, 'b', label=f'Frequency = {f3}')
+axs[2].legend()
+
+# Plot summed wave
+axs[3].plot(t, summed_wave, 'k', label='Summed Wave')
+axs[3].legend()
+
+plt.xlabel('Time')
+fig.suptitle('Waveform Decomposition', fontsize=16)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
+
+```
+
+---
+
+### The Fourier Series
+
+::: {.notes}
+"Let's formalize this. In the early 1800s, Joseph Fourier proposed an idea that his contemporaries thought was insane. He claimed that you could build any repeating shape using only smooth, curving waves."
+:::
+
+---
+
+### The Concept: Building Blocks
+
+- Joseph Fourier's insight: Any periodic function can be constructed by adding together infinite smooth sine and cosine waves.
+- This applies even to jagged, discontinuous, or square functions.
+
+---
+
+### The Math: Fourier Series Equation
+
+The Fourier Series for a periodic function $f(t)$ with period $T$:
+
+$$f(t) = a_0 + \sum_{n=1}^{\infty} \left( a_n \cos(n\omega_0 t) + b_n \sin(n\omega_0 t) \right)$$
+
+---
+
+### The Math: Equation Breakdown
+
+- $a_0$: The "DC offset" or average value of the signal.
+- $\omega_0$: The fundamental frequency ($2\pi/T$).
+- $n$: The harmonic index (1st, 2nd, 3rd...).
+- $a_n, b_n$: The "weights" or amplitudes of each frequency component.
+
+::: {.notes}
+"Look at the equation on the board.
+$a_0$ is simply the average. If we are imaging a liver, $a_0$ is the average brightness of the whole liver.
+Then we have the summation. We start with a fundamental frequency—a simple sine wave. It's too round to look like a square pixel. So, what do we do? We add a second wave, twice as fast, but maybe with a smaller amplitude. Then a third, three times as fast."
+:::
+
+---
+
+### Crucial Point: Resolution
+
+- To build a square wave (representing a sharp edge in an image), we need many sine waves.
+- **Low-frequency waves** give the general shape.
+- **High-frequency waves** (large $n$) sharpen the corners.
+
+::: {.notes}
+"If I want to build a square wave—which represents a sharp edge in an image—I need to stack many sine waves. The low-frequency waves give me the general 'up and down' shape. The high-frequency waves—the ones where $n$ is large—sharpen the corners.
+
+Crucial Point: If we stop the summation early—say we only add the first 5 waves—our square wave looks 'wobbly.' The corners are soft. In MRI, this corresponds to a low-resolution image. If we want sharp edges (high resolution), we need to collect high values of $n$. We need the high frequencies."
+:::
+
+---
+
+### Euler's Formula: The Rotation Machine
+
+::: {.notes}
+"Now, we transition from the Series (for repeating signals) to the Transform (for any signal). And we meet the equation that scares every undergraduate: the complex exponential."
+:::
+
+---
+
+### The Concept: Oscillation as Rotation
+
+- Sines and cosines can be difficult to manipulate.
+- Euler's formula lets us treat oscillation as rotation.
+- This allows us to visualize the Fourier Transform as a "winding" process.
+
+---
+
+### The Math: Euler's Identity
+
+$$e^{i\theta} = \cos(\theta) + i\sin(\theta)$$
+
+::: {.notes}
+"Don't let the imaginary number $i$ intimidate you. In this class, we treat $e^{i\theta}$ physically. It is a rotation machine.
+Imagine a clock hand spinning on a face. If you look at that clock from the side, the tip of the hand traces a sine wave moving up and down."
+:::
+
+---
+
+### The Math: The Fourier Transform
+
+The General Fourier Transform equation:
+
+$$F(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i\omega t} dt$$
+
+---
+
+### The Intuition: Winding the Signal
+
+What is this equation doing?
+1. We take our signal, $f(t)$.
+2. We multiply it by a 'winding machine', $e^{-i\omega t}$, which spins at a specific speed $\omega$.
+3. We sum up (integrate) the result over time.
+
+::: {.notes}
+"So, look at the Transform equation: $\int f(t) e^{-i\omega t} dt$.
+What is this actually doing?
+
+We take our signal, $f(t)$.
+
+We multiply it by a 'winding machine', $e^{-i\omega t}$, which spins at a specific speed $\omega$.
+
+We sum up (integrate) the result over time.
+
+Think of it this way: We wrap our signal around a circle.
+If the signal has a periodic pattern that matches the winding speed $\omega$, all the 'bumps' in the signal line up on one side of the circle. The center of mass shifts. The integral becomes large. We get a spike in the spectrum.
+If the winding speed $\omega$ doesn't match the signal, the signal wraps around the circle randomly. The positive parts cancel the negative parts. The average is zero.
+
+The Fourier Transform is effectively asking: 'If I wind this signal at speed $\omega$, does it pile up?' If yes, that frequency exists in the signal."
+:::
+
+---
+
+### Python Code: Square Wave Approximation
+
+```{python square_wave, echo=TRUE}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Setup time domain
+t = np.linspace(0, 4*np.pi, 1000)
+square_approx = np.zeros_like(t)
+# We use odd harmonics for a square wave (1, 3, 5, etc.)
+terms = [1, 3, 5, 7, 9, 11, 13, 15]
+
+plt.figure(figsize=(12, 8))
+
+# Subplot 1: The individual components
+plt.subplot(2, 1, 1)
+plt.title("Individual Frequency Components")
+colors = plt.cm.viridis(np.linspace(0, 1, len(terms[:4])))
+for i, n in enumerate(terms[:4]): # Plot first 4 components
+    amplitude = (4/np.pi) * (1/n)
+    component = amplitude * np.sin(n * t)
+    plt.plot(t, component, label=f'Harmonic n={n}', color=colors[i], linewidth=1.5)
+plt.legend(loc='upper right')
+plt.grid(True, alpha=0.3)
+
+# Subplot 2: The Summation
+plt.subplot(2, 1, 2)
+plt.title("Summation: Building the Square Wave")
+for n in terms:
+    square_approx += (4/np.pi) * (1/n) * np.sin(n * t)
+
+plt.plot(t, square_approx, 'k-', linewidth=2, label=f'Sum of first {len(terms)} terms')
+# Overlay the ideal square wave for comparison
+ideal_square = np.sign(np.sin(t))
+plt.plot(t, ideal_square, 'r--', alpha=0.4, label='Ideal Square Wave')
+
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.legend(loc='upper right')
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Module 2: The Digital Domain & FFT
+
+### Continuous to Discrete
+
+::: {.notes}
+"The integral we just looked at is mathematically beautiful, but computationally impossible. A computer cannot store a continuous function; it has finite memory. It can only store a list of numbers.
+In MRI, the scanner reads the signal at specific time points: $t_0, t_1, t_2...$ This is called sampling."
+:::
+
+---
+
+### The Concept: Sampling
+
+- Real life physics is continuous (analog).
+- Computers and MRI scanners are discrete (digital).
+- We cannot integrate from $-\infty$ to $+\infty$. We must take snapshots (samples) at fixed intervals.
+
+---
+
+### The Math: The Discrete Fourier Transform (DFT)
+
+$$X_k = \sum_{n=0}^{N-1} x_n e^{-i 2\pi k n / N}$$
+
+::: {.notes}
+"Consequently, we must swap our tools.
+
+The Integral ($\int$) becomes a Summation ($\sum$).
+
+The continuous time $t$ becomes an index $n$ (sample number 1, sample number 2...).
+
+The infinite range becomes a finite number of samples $N$.
+
+This equation on the slide—the DFT—is the workhorse of modern medical imaging. Every time you see a reconstructed MR image, this specific summation has been calculated millions of times."
+:::
+
+---
+
+### Sampling and Aliasing
+
+::: {.notes}
+"We have to be careful when we sample. Has anyone ever watched a video of a car driving on the highway, and the wheels look like they are spinning backwards?
+That is Aliasing."
+:::
+
+---
+
+### The Nyquist-Shannon Theorem
+
+- To accurately digitize a signal of frequency $f$, you must sample at a rate of at least $2f$.
+- If you sample too slowly, high-frequency signals are misinterpreted as low-frequency signals. This is **Aliasing**.
+
+---
+
+### Python Code: The "Wagon Wheel" Effect (Aliasing)
+
+```{python aliasing_effect, echo=TRUE}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# High-frequency signal
+f_high = 10  # Hz
+t_cont = np.linspace(0, 1, 1000)
+signal_cont = np.sin(2 * np.pi * f_high * t_cont)
+
+# Undersampling
+fs_bad = 12  # Sampling freq < 2 * f_high
+t_bad = np.arange(0, 1, 1/fs_bad)
+signal_bad = np.sin(2 * np.pi * f_high * t_bad)
+
+# Aliased frequency
+f_alias = abs(f_high - fs_bad)
+signal_alias = np.sin(2 * np.pi * f_alias * t_cont)
+
+# Plotting
+plt.figure(figsize=(12, 6))
+plt.plot(t_cont, signal_cont, 'k--', label=f'Original Signal ({f_high} Hz)', alpha=0.5)
+plt.plot(t_cont, signal_alias, 'b-', label=f'Aliased Signal ({f_alias} Hz)')
+plt.plot(t_bad, signal_bad, 'ro', label=f'Samples (at {fs_bad} Hz)')
+plt.title('Aliasing: The Wagon Wheel Effect')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+```
+
+::: {.notes}
+"The camera is taking pictures (sampling) at 30 frames per second. The wheel is spinning faster than that. Between one frame and the next, the wheel spins almost all the way around, so it looks like it moved slightly backward.
+
+The camera—the sampler—lied to you. It told you the frequency was $-5$ Hz when it was actually $+100$ Hz.
+
+In MRI, this is a disaster. If the signal from the patient changes faster than our scanner samples it, that high-frequency data (usually edges or noise) will 'fold over' and appear as low-frequency data in the wrong part of the image. This leads to the 'Wrap-Around Artifact,' where a patient's nose might wrap around and appear inside the back of their head."
+:::
+
+---
+
+### The Fast Fourier Transform (FFT)
+
+::: {.notes}
+"You will often hear 'DFT' and 'FFT' used interchangeably. They result in the same numbers, but the difference is speed."
+:::
+
+---
+
+### The Concept: An Efficient Algorithm
+
+- The FFT is not a new concept; it is an efficient algorithm for calculating the DFT.
+- Naive DFT: Complexity $O(N^2)$.
+- FFT: Complexity $O(N \log N)$.
+- This speed difference makes real-time MRI possible.
+
+::: {.notes}
+"Imagine you have an image that is $256 \times 256$ pixels.
+If you use the standard DFT definition, the computer has to do roughly $N$ squared operations. For high-resolution medical images, this would take minutes, maybe hours on older hardware.
+
+In 1965, Cooley and Tukey popularized the FFT. They realized that the calculation repeats itself. By dividing the samples into even and odd groups, computing them separately, and combining them, you save massive amounts of time.
+The FFT allows us to reconstruct an MRI slice in milliseconds. Without this algorithm, MRI would be a slow, academic curiosity, not a clinical tool used in emergency rooms."
+:::
+
+## Module 3: Higher Dimensions & K-Space
+
+### The Leap to 2D
+
+::: {.notes}
+"Now we move from sound to sight. From 1D to 2D."
+:::
+
+---
+
+### The Concept: 2D Waves
+
+- A 1D signal is a ripple on a string.
+- A 2D signal is a "corrugated sheet" or a pattern of stripes.
+- It has three properties:
+  - **Amplitude:** How bright the stripes are.
+  - **Frequency:** How close the stripes are packed.
+  - **Orientation:** The angle of the stripes.
+
+---
+
+### Python Code: 2D Sine Waves ("Gratings")
+
+```{python gratings_plot, echo=TRUE}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Grid
+x = np.linspace(-np.pi, np.pi, 256)
+y = np.linspace(-np.pi, np.pi, 256)
+X, Y = np.meshgrid(x, y)
+
+# Gratings
+# A: Low frequency, x-direction
+grating_A = np.sin(2 * X)
+# B: High frequency, y-direction
+grating_B = np.sin(8 * Y)
+# C: Diagonal
+grating_C = np.sin(4 * X + 4 * Y)
+
+# Plotting
+fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+
+axs[0].imshow(grating_A, cmap='gray')
+axs[0].set_title('A: Low Freq, X-direction')
+axs[0].axis('off')
+
+axs[1].imshow(grating_B, cmap='gray')
+axs[1].set_title('B: High Freq, Y-direction')
+axs[1].axis('off')
+
+axs[2].imshow(grating_C, cmap='gray')
+axs[2].set_title('C: Diagonal Grating')
+axs[2].axis('off')
+
+plt.tight_layout()
+plt.show()
+
+```
+
+::: {.notes}
+"When we perform a Fourier Transform on an image, we are decomposing the picture into layers of stripes.
+I want you to imagine a clear plastic sheet with wide vertical black bars painted on it.
+Now imagine another sheet with thin horizontal bars.
+If I stack thousands of these sheets—some with diagonal bars, some thick, some thin—and I look through the whole stack, the overlapping patterns will form a picture. That is the Inverse 2D Fourier Transform. We are building an image out of gratings."
+:::
+
+---
+
+### Defining K-Space
+
+::: {.notes}
+"This is the concept that trips up most students. When you look at the raw data file coming off an MRI scanner, you do not see a brain. You see a galaxy of bright dots. This is K-Space."
+:::
+
+---
+
+### The Concept: A Frequency Map
+
+- K-Space is the "frequency domain" map of the image.
+- It is a coordinate system $(k_x, k_y)$.
+  - $k_x$ axis: Horizontal frequencies (vertical stripes).
+  - $k_y$ axis: Vertical frequencies (horizontal stripes).
+
+---
+
+### Navigating K-Space
+
+- **Center $(0,0)$:** Zero frequency. Average brightness (contrast). Contains the most energy.
+- **Periphery:** High frequencies. Fine details and sharp edges.
+
+::: {.notes}
+"K-space is a map. But it's not a map of 'where things are' (like a nose or an ear). It is a map of 'how fast things change.'
+
+Let's navigate this map:
+
+Stand in the center: You are at low frequency. This data tells us about the large, smooth shapes. The general contrast of the brain vs the skull. If we delete the center of K-space, the image turns grey and ghostly; we lose the contrast.
+
+Walk to the edge: You are at high frequency. This data tells us about sharp changes—the edges of the ventricles, the boundary of a tumor. If we delete the edges of K-space, the image gets blurry. The details vanish."
+:::
+
+---
+
+### Python Code: 2D FFT and K-Space
+
+```{python kspace_viz, echo=TRUE}
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import fftpack
+
+# 1. Create a simple 2D phantom
+phantom = np.zeros((256, 256))
+phantom[64:192, 80:176] = 1 # Big rectangle
+phantom[100:150, 100:150] = 0 # Hole in the middle
+
+# 2. Perform 2D FFT
+f_transform = fftpack.fft2(phantom)
+
+# 3. Shift the zero-frequency component to the center
+f_shift = fftpack.fftshift(f_transform)
+
+# 4. Calculate magnitude spectrum (log scale)
+magnitude_spectrum = 20 * np.log(np.abs(f_shift) + 1)
+
+# Visualization
+plt.figure(figsize=(14, 6))
+
+plt.subplot(1, 2, 1)
+plt.imshow(phantom, cmap='gray')
+plt.title('Input Image (Space Domain)\nYour Brain')
+plt.axis('off')
+
+plt.subplot(1, 2, 2)
+plt.imshow(magnitude_spectrum, cmap='inferno')
+plt.title('Magnitude Spectrum (K-Space)\nThe Raw Data')
+plt.axis('off')
+
+plt.tight_layout()
+plt.show()
+```
